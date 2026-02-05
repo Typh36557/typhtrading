@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin – Signal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial; background:#020617; color:#fff; padding:20px }
+    input, select, textarea, button { width:100%; margin:5px 0; padding:10px }
+    button { background:#22c55e; border:none; font-weight:bold; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <h2>🔐 Publication Signal</h2>
+
+  <script>
+    const password = prompt('Mot de passe admin :');
+    if (password !== 'admin123') {
+      alert('Accès refusé');
+      document.body.innerHTML = '';
+    }
+  </script>
+
+  <form onsubmit="saveSignal(event)">
+    <input id="actif" placeholder="Actif (EURUSD)" required>
+    <select id="type">
+      <option>CALL</option>
+      <option>PUT</option>
+    </select>
+    <input id="timeframe" placeholder="Timeframe (M1)" required>
+    <input id="heure" placeholder="Heure entrée (11:05)" required>
+    <input id="expiration" placeholder="Expiration (1 min)" required>
+    <textarea id="commentaire" placeholder="Commentaire"></textarea>
+    <button>ENVOYER</button>
+  </form>
+
+  <script>
+    function saveSignal(e) {
+      e.preventDefault();
+      const data = {
+        actif: document.getElementById('actif').value,
+        type: document.getElementById('type').value,
+        timeframe: document.getElementById('timeframe').value,
+        heure: document.getElementById('heure').value,
+        expiration: document.getElementById('expiration').value,
+        commentaire: document.getElementById('commentaire').value
+      };
+      const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'signal.json';
+      a.click();
+      alert('Télécharge signal.json et remplace-le sur Netlify pour mettre à jour le signal.');
+    }
+  </script>
+</body>
+</html>

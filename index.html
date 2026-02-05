@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Signal de Trading</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial; background:#0f172a; color:#fff; text-align:center; padding:20px }
+    .box { background:#020617; padding:20px; border-radius:10px; max-width:400px; margin:auto }
+    .call { color:#22c55e; font-weight:bold; font-size:24px; }
+    .put { color:#ef4444; font-weight:bold; font-size:24px; }
+  </style>
+</head>
+<body>
+  <h1>📢 Dernier Signal</h1>
+  <div class="box" id="signal">Chargement...</div>
+
+  <script>
+    fetch('signal.json')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('signal').innerHTML = `
+          <h2>${data.actif}</h2>
+          <p class="${data.type === 'CALL' ? 'call' : 'put'}">
+            ${data.type}
+          </p>
+          <p>Timeframe : ${data.timeframe}</p>
+          <p>Entrée : ${data.heure}</p>
+          <p>Expiration : ${data.expiration}</p>
+          <p>${data.commentaire}</p>
+        `;
+      })
+      .catch(err => { document.getElementById('signal').innerHTML = 'Aucun signal disponible.'; });
+  </script>
+</body>
+</html>
