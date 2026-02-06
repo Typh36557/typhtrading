@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Typh Tech - Admin Mobile</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
     <style>
         * {
             box-sizing: border-box;
@@ -318,6 +323,47 @@
             animation: pulse 0.5s ease-in-out;
         }
     </style>
+    
+    <!-- Firebase Configuration -->
+    <script>
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBYTj0oxyGyYMGuG3oS3I9rsJztkKI19cQ",
+            authDomain: "signal-trading-dc7e1.firebaseapp.com",
+            databaseURL: "https://signal-trading-dc7e1-default-rtdb.firebaseio.com",
+            projectId: "signal-trading-dc7e1",
+            storageBucket: "signal-trading-dc7e1.firebasestorage.app",
+            messagingSenderId: "1079678337192",
+            appId: "1:1079678337192:web:0ae573263a9772acb9029d",
+            measurementId: "G-MM3GRDYVLX"
+        };
+        
+        // Initialiser Firebase
+        const firebaseApp = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // Vérification mot de passe
+        document.addEventListener('DOMContentLoaded', function() {
+            const password = prompt("🔐 Mot de passe admin:");
+            
+            if (password !== "TYPH001") {
+                document.body.innerHTML = `
+                    <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background:#0a0e17; color:white; text-align:center; padding:20px;">
+                        <i class="fas fa-lock" style="font-size:4rem; color:#ef4444; margin-bottom:20px;"></i>
+                        <h2>Accès refusé</h2>
+                        <p>Mot de passe incorrect</p>
+                        <button onclick="location.reload()" style="margin-top:20px; padding:10px 20px; background:#0d6efd; color:white; border:none; border-radius:8px; cursor:pointer;">
+                            Réessayer
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Initialiser l'application
+            init();
+        });
+    </script>
 </head>
 <body>
     <div class="container">
@@ -479,11 +525,31 @@
             updateStats();
             loadSavedNews();
             setupEventListeners();
+            setupFirebaseListeners();
             
             // Vérifier si c'est la première visite
             if (!localStorage.getItem('firstVisit')) {
                 showNotification('Bienvenue sur Typh Admin Mobile!', 'success');
                 localStorage.setItem('firstVisit', 'true');
+            }
+        }
+        
+        // Configurer les écouteurs Firebase
+        function setupFirebaseListeners() {
+            // Écouter le dernier signal
+            database.ref('currentSignal').on('value', (snapshot) => {
+                const signal = snapshot.val();
+                if (signal) {
+                    updateFirebaseStats(signal);
+                }
+            });
+        }
+        
+        // Mettre à jour les statistiques Firebase
+        function updateFirebaseStats(signal) {
+            if (signal && signal.timestamp) {
+                elements.lastTime.textContent = new Date(signal.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                elements.signalCount.textContent = appState.signalHistory.length + 1;
             }
         }
         
@@ -549,7 +615,8 @@
                 pair: elements.currencyPair.value,
                 source: "admin_manual",
                 id: Date.now(),
-                type: "signal"
+                type: "signal",
+                timestamp: Date.now()
             };
             
             // Ajouter au début de l'historique
@@ -560,13 +627,16 @@
                 appState.signalHistory = appState.signalHistory.slice(0, 100);
             }
             
-            // Sauvegarder
+            // Sauvegarder localement
             localStorage.setItem("signalHistory", JSON.stringify(appState.signalHistory));
             localStorage.setItem("lastSignal", JSON.stringify(signal));
             localStorage.setItem("lastUpdate", Date.now());
             
             // Mettre à jour les stats
             updateStats();
+            
+            // Envoyer à Firebase
+            sendSignalToFirebase(signal);
             
             // Notification
             const actionText = signal.action === 'CALL' ? '📈 CALL' : 
@@ -578,10 +648,34 @@
             setTimeout(() => {
                 elements.sendSignalBtn.classList.remove('pulse');
             }, 500);
-            
-            // Pour Netlify: simuler un envoi à un backend
-            if (NETLIFY_MODE) {
-                simulateNetlifySync(signal);
+        }
+        
+        // Envoyer signal à Firebase
+        function sendSignalToFirebase(signal) {
+            try {
+                // Préparer le signal pour Firebase
+                const firebaseSignal = {
+                    actif: signal.pair,
+                    type: signal.action,
+                    etat: signal.action === "ATTENDRE" ? "ATTENDRE" : "ENTRER",
+                    heure: signal.time,
+                    expiration: "5 minutes",
+                    commentaire: `Risque: ${signal.risk}`,
+                    timestamp: signal.timestamp,
+                    risk: signal.risk,
+                    source: "admin_manual"
+                };
+                
+                // Sauvegarder le signal actuel
+                database.ref('currentSignal').set(firebaseSignal);
+                
+                // Ajouter à l'historique Firebase
+                database.ref('history').push().set(firebaseSignal);
+                
+                console.log('✅ Signal envoyé à Firebase:', firebaseSignal);
+            } catch (error) {
+                console.error('❌ Erreur Firebase:', error);
+                showNotification('Erreur d\'envoi Firebase', 'error');
             }
         }
         
@@ -598,14 +692,18 @@
                 text: newsText,
                 time: new Date().toLocaleTimeString(),
                 date: new Date().toLocaleDateString('fr-FR'),
-                type: "news"
+                type: "news",
+                timestamp: Date.now()
             };
             
-            // Sauvegarder
+            // Sauvegarder localement
             appState.newsContent = newsText;
             localStorage.setItem("newsContent", newsText);
             localStorage.setItem("lastNews", JSON.stringify(news));
             localStorage.setItem("newsUpdate", Date.now());
+            
+            // Envoyer à Firebase
+            sendNewsToFirebase(newsText);
             
             showNotification('News publiées avec succès!', 'success');
             
@@ -616,12 +714,29 @@
             }, 500);
         }
         
+        // Envoyer news à Firebase
+        function sendNewsToFirebase(newsText) {
+            try {
+                database.ref('news').set(newsText);
+                console.log('✅ News envoyées à Firebase:', newsText);
+            } catch (error) {
+                console.error('❌ Erreur Firebase news:', error);
+            }
+        }
+        
         // Effacer l'historique
         function clearHistory() {
             if (confirm('Voulez-vous vraiment effacer tout l\'historique des signaux?')) {
                 appState.signalHistory = [];
                 localStorage.removeItem("signalHistory");
                 localStorage.removeItem("lastSignal");
+                
+                // Effacer l'historique Firebase
+                try {
+                    database.ref('history').remove();
+                } catch (error) {
+                    console.error('Erreur Firebase:', error);
+                }
                 
                 updateStats();
                 showNotification('Historique effacé', 'warning');
@@ -660,15 +775,8 @@
             }, 3000);
         }
         
-        // Simulation de sync Netlify
-        function simulateNetlifySync(signal) {
-            console.log('Netlify Sync simulé:', signal);
-            // Dans une vraie implémentation Netlify, on utiliserait:
-            // fetch('/.netlify/functions/sync-signal', { method: 'POST', body: JSON.stringify(signal) })
-        }
-        
         // Démarrer l'application
-        document.addEventListener('DOMContentLoaded', init);
+        // L'initialisation se fait après la vérification du mot de passe
     </script>
 </body>
 </html>

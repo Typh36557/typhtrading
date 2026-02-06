@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0d6efd">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
     <style>
         * {
             box-sizing: border-box;
@@ -418,6 +423,25 @@
             border-radius: 10px;
         }
     </style>
+    
+    <!-- Firebase Configuration -->
+    <script>
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBYTj0oxyGyYMGuG3oS3I9rsJztkKI19cQ",
+            authDomain: "signal-trading-dc7e1.firebaseapp.com",
+            databaseURL: "https://signal-trading-dc7e1-default-rtdb.firebaseio.com",
+            projectId: "signal-trading-dc7e1",
+            storageBucket: "signal-trading-dc7e1.firebasestorage.app",
+            messagingSenderId: "1079678337192",
+            appId: "1:1079678337192:web:0ae573263a9772acb9029d",
+            measurementId: "G-MM3GRDYVLX"
+        };
+        
+        // Initialiser Firebase
+        const firebaseApp = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+    </script>
 </head>
 <body>
     <!-- Header -->
@@ -558,7 +582,7 @@
     <!-- Toast Notification -->
     <div class="toast" id="toast"></div>
     
-    <!-- Script principal -->
+    <!-- Script principal avec Firebase -->
     <script>
         // Configuration Netlify
         const NETLIFY_MODE = true;
@@ -580,6 +604,11 @@
                 successfulPuts: 0,
                 todaySignals: 0,
                 lastReset: new Date().toDateString()
+            },
+            firebaseData: {
+                currentSignal: null,
+                news: null,
+                history: []
             }
         };
         
@@ -620,14 +649,155 @@
             updateDisplay();
             startAutoSignal();
             startMarketAnalysis();
+            initFirebase();
             
             // Vérifier les mises à jour régulièrement
             setInterval(checkForUpdates, 2000);
+        }
+        
+        // Initialiser Firebase
+        function initFirebase() {
+            console.log("Initialisation Firebase...");
             
-            // PWA: Demander l'installation
-            if ('serviceWorker' in navigator && NETLIFY_MODE) {
-                navigator.serviceWorker.register('/sw.js').catch(console.error);
+            // Vérifier la connexion
+            database.ref('.info/connected').on('value', (snap) => {
+                const isConnected = snap.val() === true;
+                document.getElementById('connection-status').innerHTML = 
+                    isConnected ? 
+                    '<i class="fas fa-wifi"></i> Connecté à Firebase' : 
+                    '<i class="fas fa-wifi-slash"></i> Déconnecté';
+            });
+            
+            // Écouter le signal actuel depuis Firebase
+            database.ref('currentSignal').on('value', (snapshot) => {
+                const signal = snapshot.val();
+                if (signal) {
+                    state.firebaseData.currentSignal = signal;
+                    updateSignalFromFirebase(signal);
+                }
+            });
+            
+            // Écouter les news depuis Firebase
+            database.ref('news').on('value', (snapshot) => {
+                const newsText = snapshot.val();
+                if (newsText !== null && newsText !== undefined) {
+                    state.firebaseData.news = newsText;
+                    updateNewsFromFirebase(newsText);
+                }
+            });
+            
+            // Écouter l'historique depuis Firebase
+            database.ref('history').on('value', (snapshot) => {
+                const historyData = snapshot.val();
+                if (historyData) {
+                    state.firebaseData.history = Object.values(historyData);
+                    updateHistoryFromFirebase();
+                }
+            });
+        }
+        
+        // Mettre à jour le signal depuis Firebase
+        function updateSignalFromFirebase(signal) {
+            // Convertir le format Firebase
+            const formattedSignal = {
+                time: signal.heure || '--:--',
+                date: new Date(signal.timestamp || Date.now()).toLocaleDateString('fr-FR'),
+                action: signal.type || 'ATTENDRE',
+                risk: signal.risk || 'MOYEN',
+                pair: signal.actif || 'EUR/USD',
+                source: signal.source || 'admin_manual',
+                id: signal.timestamp || Date.now()
+            };
+            
+            // Mettre à jour l'affichage
+            DOM.signalAction.textContent = formattedSignal.action;
+            DOM.signalAction.className = `signal-action ${SIGNAL_CLASSES[formattedSignal.action]}`;
+            DOM.signalPair.textContent = formattedSignal.pair;
+            DOM.signalRisk.textContent = formattedSignal.risk;
+            DOM.signalTime.textContent = formattedSignal.time;
+            DOM.signalSource.textContent = formattedSignal.source === 'admin_manual' ? 'Admin' : 'Auto';
+            
+            // Mettre à jour la couleur
+            DOM.mainSignal.classList.remove('signal-call', 'signal-put', 'signal-wait');
+            DOM.mainSignal.classList.add(SIGNAL_CLASSES[formattedSignal.action].replace('signal-', ''));
+            
+            // Vérifier si c'est un nouveau signal admin
+            if (signal.source === 'admin_manual') {
+                const isNewSignal = !state.signalHistory.some(s => s.id === formattedSignal.id);
+                if (isNewSignal) {
+                    addSignalToHistory(formattedSignal);
+                    showToast(`📨 Nouveau signal admin: ${signal.type} ${signal.actif}`, 'warning');
+                }
             }
+        }
+        
+        // Mettre à jour les news depuis Firebase
+        function updateNewsFromFirebase(newsText) {
+            if (newsText && newsText !== state.newsContent) {
+                DOM.newsContent.textContent = newsText;
+                DOM.newsTime.textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                state.newsContent = newsText;
+                
+                // Notification si c'est une nouvelle news
+                if (newsText.length > 0) {
+                    showToast('📰 Nouvelles news reçues', 'success');
+                }
+            }
+        }
+        
+        // Mettre à jour l'historique depuis Firebase
+        function updateHistoryFromFirebase() {
+            const firebaseHistory = state.firebaseData.history
+                .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+                .slice(0, 10);
+            
+            renderFirebaseHistory(firebaseHistory);
+        }
+        
+        // Afficher l'historique Firebase
+        function renderFirebaseHistory(signals) {
+            const historyList = DOM.historyList;
+            historyList.innerHTML = '';
+            
+            if (signals.length === 0) {
+                historyList.innerHTML = `
+                    <div class="history-item wait">
+                        <div class="history-time">--:--</div>
+                        <div class="history-action">Aucun signal</div>
+                        <div class="history-risk">--</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            signals.forEach(signal => {
+                const item = document.createElement('div');
+                item.className = `history-item ${(signal.type || 'ATTENDRE').toLowerCase()} fade-in`;
+                item.innerHTML = `
+                    <div class="history-time">${signal.heure || '--:--'}</div>
+                    <div class="history-action">${signal.type || 'ATTENDRE'}</div>
+                    <div class="history-risk">${signal.risk || 'MOYEN'}</div>
+                `;
+                
+                item.addEventListener('click', () => {
+                    const details = `
+                        Signal: ${signal.type}
+                        Paire: ${signal.actif}
+                        Risque: ${signal.risk || 'MOYEN'}
+                        Heure: ${signal.heure}
+                        ${signal.commentaire ? `Commentaire: ${signal.commentaire}` : ''}
+                    `;
+                    
+                    if (window.confirm(details + "\n\nVoulez-vous copier ces détails?")) {
+                        navigator.clipboard.writeText(details);
+                        showToast('Détails copiés', 'success');
+                    }
+                });
+                
+                historyList.appendChild(item);
+            });
+            
+            DOM.historyCount.textContent = `${signals.length} signaux live`;
         }
         
         // Configurer les événements
@@ -642,28 +812,6 @@
             // Boutons de navigation
             document.getElementById('stats-btn').addEventListener('click', showStatsModal);
             document.getElementById('settings-btn').addEventListener('click', showSettingsModal);
-            
-            // PWA: Installation
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                // Stocker l'événement pour plus tard
-                window.deferredPrompt = e;
-            });
-            
-            // Rafraîchissement pull-to-refresh
-            let touchStartY = 0;
-            window.addEventListener('touchstart', (e) => {
-                touchStartY = e.touches[0].clientY;
-            });
-            
-            window.addEventListener('touchmove', (e) => {
-                const touchY = e.touches[0].clientY;
-                const diff = touchStartY - touchY;
-                
-                if (diff > 50 && window.scrollY === 0) {
-                    refreshData();
-                }
-            });
         }
         
         // Charger les données initiales
@@ -694,19 +842,7 @@
             updateStats();
         }
         
-        // Mettre à jour l'affichage
-        function updateDisplay() {
-            // Mettre à jour l'historique
-            renderHistory();
-            
-            // Mettre à jour le dernier refresh
-            DOM.lastUpdate.textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            
-            // Mettre à jour le compteur
-            DOM.historyCount.textContent = `${state.signalHistory.length} signaux`;
-        }
-        
-        // Mettre à jour le signal principal
+        // Mettre à jour le signal principal (version locale)
         function updateMainSignal(signal) {
             DOM.signalAction.textContent = signal.action;
             DOM.signalAction.className = `signal-action ${SIGNAL_CLASSES[signal.action]}`;
@@ -720,12 +856,30 @@
             DOM.mainSignal.classList.add(SIGNAL_CLASSES[signal.action].replace('signal-', ''));
         }
         
-        // Rendre l'historique
+        // Mettre à jour l'affichage
+        function updateDisplay() {
+            // Mettre à jour l'historique
+            renderHistory();
+            
+            // Mettre à jour le dernier refresh
+            DOM.lastUpdate.textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            // Mettre à jour le compteur
+            DOM.historyCount.textContent = `${state.signalHistory.length} signaux`;
+        }
+        
+        // Rendre l'historique local
         function renderHistory() {
             const historyList = DOM.historyList;
+            
+            // Si on a des données Firebase, on les utilise
+            if (state.firebaseData.history.length > 0) {
+                return; // L'historique Firebase est déjà affiché
+            }
+            
             historyList.innerHTML = '';
             
-            // Prendre les 10 derniers signaux
+            // Prendre les 10 derniers signaux locaux
             const recentSignals = state.signalHistory.slice(0, 10);
             
             if (recentSignals.length === 0) {
@@ -821,7 +975,6 @@
             
             // Mettre à jour l'affichage
             updateMainSignal(signal);
-            renderHistory();
             updateStats();
             
             // Notification
@@ -837,7 +990,6 @@
         // Analyser la condition du marché
         function analyzeMarketCondition() {
             // Simulation d'analyse de marché
-            // Dans une vraie application, on utiliserait une API de trading
             const conditions = ['trend_up', 'trend_down', 'range', 'volatile'];
             const randomCondition = conditions[Math.floor(Math.random() * conditions.length)];
             
@@ -922,11 +1074,6 @@
             // Sauvegarder
             saveAppState();
             saveAppStats();
-            
-            // Pour Netlify: synchronisation
-            if (NETLIFY_MODE) {
-                syncWithNetlify(signal);
-            }
         }
         
         // Démarrer l'analyse du marché
@@ -939,56 +1086,30 @@
         
         // Vérifier les mises à jour
         function checkForUpdates() {
-            const lastUpdate = localStorage.getItem("lastUpdate");
-            const newsUpdate = localStorage.getItem("newsUpdate");
-            
-            // Vérifier les nouveaux signaux
-            if (lastUpdate && parseInt(lastUpdate) > parseInt(state.lastUpdate)) {
-                state.lastUpdate = lastUpdate;
-                const newSignal = JSON.parse(localStorage.getItem("lastSignal"));
-                
-                if (newSignal && newSignal.id !== state.lastSignal?.id) {
-                    // Signal de l'admin détecté
-                    addSignalToHistory(newSignal);
-                    updateMainSignal(newSignal);
-                    renderHistory();
-                    showToast(`Nouveau signal admin: ${newSignal.action}`, 'warning');
-                }
-            }
-            
-            // Vérifier les nouvelles news
-            if (newsUpdate) {
-                const newsContent = localStorage.getItem("newsContent");
-                if (newsContent && newsContent !== state.newsContent) {
-                    state.newsContent = newsContent;
-                    DOM.newsContent.textContent = newsContent;
-                    
-                    const lastNews = JSON.parse(localStorage.getItem("lastNews"));
-                    if (lastNews) {
-                        DOM.newsTime.textContent = lastNews.time;
-                    }
-                    
-                    showToast('Nouvelles news disponibles', 'success');
-                }
-            }
+            // Cette fonction vérifie maintenant via Firebase en temps réel
+            // Pas besoin de vérifier localStorage
+            DOM.lastUpdate.textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         }
         
         // Rafraîchir les données
         function refreshData() {
-            // Recharger depuis localStorage
-            state.signalHistory = JSON.parse(localStorage.getItem("signalHistory")) || [];
-            state.lastSignal = JSON.parse(localStorage.getItem("lastSignal"));
-            state.newsContent = localStorage.getItem("newsContent") || "";
+            // Forcer la récupération des données Firebase
+            database.ref('currentSignal').once('value').then((snapshot) => {
+                const signal = snapshot.val();
+                if (signal) {
+                    updateSignalFromFirebase(signal);
+                }
+            });
             
-            // Mettre à jour l'affichage
-            updateDisplay();
-            
-            if (state.lastSignal) {
-                updateMainSignal(state.lastSignal);
-            }
+            database.ref('news').once('value').then((snapshot) => {
+                const news = snapshot.val();
+                if (news) {
+                    updateNewsFromFirebase(news);
+                }
+            });
             
             // Notification
-            showToast('Données actualisées', 'success');
+            showToast('✅ Données actualisées', 'success');
             
             // Animation
             DOM.mainSignal.classList.add('pulse-animation');
@@ -1037,21 +1158,6 @@
             localStorage.setItem("appStats", JSON.stringify(state.appStats));
         }
         
-        // Synchronisation Netlify
-        function syncWithNetlify(signal) {
-            if (!NETLIFY_MODE) return;
-            
-            // Simulation de l'envoi à Netlify Functions
-            console.log('Netlify Sync:', signal);
-            
-            // Dans une vraie implémentation:
-            // fetch('/.netlify/functions/save-signal', {
-            //     method: 'POST',
-            //     headers: {'Content-Type': 'application/json'},
-            //     body: JSON.stringify(signal)
-            // });
-        }
-        
         // Modal de statistiques
         function showStatsModal() {
             const stats = `
@@ -1073,6 +1179,7 @@
                 2. Mode Netlify: ${NETLIFY_MODE ? 'Activé' : 'Désactivé'}
                 3. Signal auto: ${state.autoSignalEnabled ? 'Activé' : 'Désactivé'}
                 4. Historique: ${state.signalHistory.length} signaux
+                5. Firebase: Connecté
             `;
             
             const action = prompt(`⚙️ Réglages:\n\n${settings}\n\nEntrez "reset" pour réinitialiser:`);
