@@ -2,106 +2,895 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>TYPH SIGNAL TRADING</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>📊TYPH SIGNAL TRADING</title>
 <style>
-body { font-family: Arial; background:#0f172a; color:#fff; text-align:center; padding:20px }
-.box { background:#020617; padding:20px; border-radius:10px; max-width:420px; margin:auto }
-.call { color:#22c55e; font-size:40px; font-weight:bold }
-.put { color:#ef4444; font-size:40px; font-weight:bold }
-.wait { background:#facc15; color:#000; padding:6px 12px; border-radius:6px; font-weight:bold }
-.enter { background:#22c55e; padding:6px 12px; border-radius:6px; font-weight:bold }
-.news { background:#1e293b; padding:10px; margin:10px auto; border-radius:8px }
-.history { text-align:left; margin-top:20px }
-a.btn { display:inline-block; margin-top:10px; padding:10px 16px; background:#229ED9; color:#fff; border-radius:8px; text-decoration:none }
+/* RESET MOBILE */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { 
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+  background: #0a0a0a; 
+  color: #ffffff; 
+  line-height: 1.4;
+  padding-bottom: 70px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* HEADER */
+.header {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  color: white;
+  padding: 15px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.header-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+
+.header-sub {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* CONTAINER */
+.container {
+  padding: 15px;
+}
+
+/* CARTES */
+.card {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 15px;
+  border: 1px solid #2a2a2a;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* SIGNAL PRINCIPAL */
+.signal-main {
+  text-align: center;
+  padding: 25px 20px;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  border-radius: 16px;
+  border: 2px solid #2a2a2a;
+}
+
+.signal-action {
+  font-size: 42px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+.signal-call { color: #28a745; }
+.signal-put { color: #dc3545; }
+.signal-attendre { color: #ffc107; }
+
+.signal-info {
+  font-size: 14px;
+  color: #aaa;
+  margin: 5px 0;
+}
+
+.signal-reason {
+  background: #2a2a2a;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 15px;
+  font-size: 13px;
+  color: #ddd;
+  border-left: 3px solid #0d6efd;
+}
+
+/* MARCHÉ EN DIRECT */
+.market-live {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: #2a2a2a;
+  border-radius: 12px;
+  margin-bottom: 15px;
+}
+
+.price-container {
+  text-align: center;
+}
+
+.current-price {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.price-up { color: #28a745; }
+.price-down { color: #dc3545; }
+.price-neutral { color: #ffc107; }
+
+.price-change {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* CONTROLES AUTO SIGNAL */
+.auto-controls {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border: 2px solid #2a2a2a;
+}
+
+.control-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.control-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0d6efd;
+}
+
+.auto-status {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-active { background: #28a745; color: white; }
+.status-paused { background: #ffc107; color: black; }
+
+.control-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.control-btn {
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.control-btn:active {
+  transform: scale(0.96);
+}
+
+.btn-start { background: #28a745; color: white; }
+.btn-stop { background: #dc3545; color: white; }
+.btn-settings { background: #6c757d; color: white; }
+.btn-refresh { background: #0d6efd; color: white; }
+
+/* HISTORIQUE */
+.history-container {
+  max-height: 300px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.history-table th {
+  background: #2a2a2a;
+  padding: 12px;
+  font-size: 12px;
+  color: #aaa;
+  text-align: left;
+  position: sticky;
+  top: 0;
+}
+
+.history-table td {
+  padding: 12px;
+  border-bottom: 1px solid #2a2a2a;
+  font-size: 13px;
+}
+
+.signal-badge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge-call { background: rgba(40, 167, 69, 0.2); color: #28a745; }
+.badge-put { background: rgba(220, 53, 69, 0.2); color: #dc3545; }
+.badge-attendre { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+
+.badge-risk {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+}
+
+.risk-faible { background: rgba(40, 167, 69, 0.3); color: #28a745; }
+.risk-moyen { background: rgba(255, 193, 7, 0.3); color: #ffc107; }
+.risk-eleve { background: rgba(220, 53, 69, 0.3); color: #dc3545; }
+
+/* NEWS */
+.news-card {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 15px;
+  border-left: 4px solid #0d6efd;
+}
+
+.news-content {
+  margin-top: 10px;
+  padding: 15px;
+  background: #2a2a2a;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.news-time {
+  font-size: 11px;
+  color: #666;
+  margin-top: 10px;
+  text-align: right;
+}
+
+/* FOOTER NAV */
+.footer-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #1a1a1a;
+  padding: 10px 15px;
+  border-top: 1px solid #333;
+  display: flex;
+  justify-content: space-around;
+  z-index: 100;
+}
+
+.nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 10px;
+  padding: 8px;
+  min-width: 60px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-btn.active {
+  color: #0d6efd;
+}
+
+.nav-btn:active {
+  transform: scale(0.95);
+}
+
+.nav-icon {
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+
+/* NOTIFICATIONS */
+.notification {
+  position: fixed;
+  top: 70px;
+  left: 15px;
+  right: 15px;
+  background: #28a745;
+  color: white;
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 600;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  display: none;
+}
+
+/* LOADER */
+.loader {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #333;
+  border-top: 2px solid #0d6efd;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ANIMATIONS */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* RESPONSIVE */
+@media (min-width: 768px) {
+  .container {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  
+  .footer-nav {
+    max-width: 500px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
 </style>
 </head>
 <body>
 
-<h1>📊 TYPH SIGNAL TRADING</h1>
-<div class="news" id="news"></div>
+<!-- NOTIFICATION -->
+<div id="notification" class="notification"></div>
 
-<div class="box">
-  <div id="type"></div>
-  <h2 id="actif">--</h2>
-  <div id="etat"></div>
-  <p id="heure"></p>
-  <p id="expiration"></p>
-  <p id="commentaire"></p>
+<!-- HEADER -->
+<header class="header">
+  <div class="header-title">📊 TYPH SIGNAL TRADING</div>
+  <div class="header-sub">EUR/USD • M1 • Temps Réel</div>
+</header>
+
+<!-- CONTENU PRINCIPAL -->
+<main class="container">
+
+  <!-- SIGNAL ACTUEL -->
+  <div class="signal-main" id="signal-main">
+    <div class="signal-action" id="signal-action">ATTENDRE</div>
+    <div class="signal-info" id="signal-pair">EUR/USD</div>
+    <div class="signal-info" id="signal-risk">Risque: <span id="risk-value">MOYEN</span></div>
+    <div class="signal-info" id="signal-time">Heure: <span id="time-value">--:--</span></div>
+    <div class="signal-reason" id="signal-reason">En attente de signal...</div>
+  </div>
+
+  <!-- MARCHÉ EN DIRECT -->
+  <div class="market-live">
+    <div class="price-container">
+      <div class="current-price" id="current-price">1.08250</div>
+      <div class="price-change" id="price-change">+0.00050 (+0.05%)</div>
+    </div>
+    <div style="text-align: right;">
+      <div style="font-size: 12px; color: #aaa; margin-bottom: 5px;">Tendance</div>
+      <div class="auto-status status-active" id="market-trend">HAUSSIER</div>
+    </div>
+  </div>
+
+  <!-- SIGNAL AUTO -->
+  <div class="auto-controls">
+    <div class="control-header">
+      <div class="control-title">🤖 Signal Automatique</div>
+      <div class="auto-status status-paused" id="auto-status">PAUSED</div>
+    </div>
+    
+    <div class="control-buttons">
+      <button class="control-btn btn-start" onclick="startAutoSignal()">
+        <span>💰</span> Démarrer
+      </button>
+      <button class="control-btn btn-stop" onclick="stopAutoSignal()">
+        <span>⏳</span> Pause
+      </button>
+      <button class="control-btn btn-settings" onclick="showAutoSettings()">
+        <span>⚙️</span> Réglages
+      </button>
+      <button class="control-btn btn-refresh" onclick="generateAutoSignal()">
+        <span>↩️</span> Générer
+      </button>
+    </div>
+    
+    <div style="font-size: 12px; color: #666; text-align: center;">
+      Prochaine analyse: <span id="next-analysis">--:--</span>
+    </div>
+  </div>
+
+  <!-- HISTORIQUE -->
+  <div class="card">
+    <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+      <span>📊 Historique des Signaux</span>
+      <span style="font-size: 12px; color: #666;" id="signal-count">0 signaux</span>
+    </div>
+    <div class="history-container">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Heure</th>
+            <th>Signal</th>
+            <th>Risque</th>
+            <th>Source</th>
+          </tr>
+        </thead>
+        <tbody id="history-body">
+          <!-- Rempli par JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- NEWS -->
+  <div class="news-card">
+    <div class="card-title">📢 Dernières News</div>
+    <div class="news-content" id="news-content">
+      Chargement des dernières news...
+    </div>
+    <div class="news-time" id="news-time"></div>
+  </div>
+
+</main>
+
+<!-- NAVIGATION MOBILE -->
+<nav class="footer-nav">
+  <button class="nav-btn active" onclick="showTab('signal')">
+    <span class="nav-icon">📈</span>
+    <span>Signal</span>
+  </button>
+  <button class="nav-btn" onclick="showTab('market')">
+    <span class="nav-icon">💹</span>
+    <span>Marché</span>
+  </button>
+  <button class="nav-btn" onclick="showTab('auto')">
+    <span class="nav-icon">🤖</span>
+    <span>Auto</span>
+  </button>
+  <button class="nav-btn" onclick="showTab('history')">
+    <span class="nav-icon">📊</span>
+    <span>Historique</span>
+  </button>
+  <button class="nav-btn" onclick="showTab('news')">
+    <span class="nav-icon">📢</span>
+    <span>News</span>
+  </button>
+</nav>
+
+<!-- MODAL SETTINGS (caché) -->
+<div id="settings-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+  <div style="background: #1a1a1a; border-radius: 16px; padding: 20px; width: 90%; max-width: 400px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h3 style="color: #0d6efd;">⚙️ Réglages Auto Signal</h3>
+      <button onclick="hideSettings()" style="background: none; border: none; color: #666; font-size: 24px; cursor: pointer;">×</button>
+    </div>
+    <div style="margin-bottom: 15px;">
+      <label style="display: block; margin-bottom: 8px; color: #aaa;">Intervalle (secondes)</label>
+      <input type="number" id="auto-interval" value="60" min="10" max="300" style="width: 100%; padding: 12px; background: #2a2a2a; border: 1px solid #333; border-radius: 8px; color: white;">
+    </div>
+    <div style="margin-bottom: 15px;">
+      <label style="display: block; margin-bottom: 8px; color: #aaa;">Seuil tendance (%)</label>
+      <input type="number" id="trend-threshold" value="0.05" min="0.01" max="0.5" step="0.01" style="width: 100%; padding: 12px; background: #2a2a2a; border: 1px solid #333; border-radius: 8px; color: white;">
+    </div>
+    <button onclick="saveAutoSettings()" style="width: 100%; padding: 15px; background: #0d6efd; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px;">
+      💾 Sauvegarder
+    </button>
+  </div>
 </div>
 
-<a id="facebook" class="btn" target="_blank">📘 Groupe Facebook Formations</a>
-
-<div class="history">
-  <h3>📜 Historique</h3>
-  <ul id="history"></ul>
-</div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBYTj0oxyGyYMGuG3oS3I9rsJztkKI19cQ",
-  authDomain: "signal-trading-dc7e1.firebaseapp.com",
-  databaseURL: "https://signal-trading-dc7e1-default-rtdb.firebaseio.com",
-  projectId: "signal-trading-dc7e1",
-  storageBucket: "signal-trading-dc7e1.firebasestorage.app",
-  messagingSenderId: "1079678337192",
-  appId: "1:1079678337192:web:0ae573263a9772acb9029d",
-  measurementId: "G-MM3GRDYVLX"
+<script>
+// ====== CONFIGURATION ======
+const CONFIG = {
+  AUTO_INTERVAL: parseInt(localStorage.getItem('autoInterval')) || 60000, // 1 minute par défaut
+  TREND_THRESHOLD: parseFloat(localStorage.getItem('trendThreshold')) || 0.05,
+  MARKET_API: 'https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=EUR&to_currency=USD&apikey=demo'
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+// ====== ÉTAT GLOBAL ======
+let state = {
+  autoSignalActive: false,
+  autoSignalTimer: null,
+  history: JSON.parse(localStorage.getItem("signalHistory")) || [],
+  marketData: null,
+  priceHistory: [],
+  currentTab: 'signal',
+  lastUpdate: localStorage.getItem("lastUpdate") || 0
+};
 
-// SIGNAL ACTUEL
-onValue(ref(db, "currentSignal"), (snap) => {
-  const s = snap.val();
-  if (!s) return;
+// ====== FONCTIONS D'AFFICHAGE ======
+function showNotification(message, type = 'info') {
+  const notif = document.getElementById('notification');
+  notif.textContent = message;
+  notif.style.display = 'block';
+  
+  // Couleur selon type
+  const colors = {
+    success: '#28a745',
+    warning: '#ffc107',
+    error: '#dc3545',
+    info: '#0d6efd'
+  };
+  
+  notif.style.background = colors[type] || colors.info;
+  
+  // Masquer après 3s
+  setTimeout(() => {
+    notif.style.display = 'none';
+  }, 3000);
+  
+  // Vibration mobile
+  if (navigator.vibrate) {
+    navigator.vibrate(100);
+  }
+}
 
-  document.getElementById("type").innerHTML =
-    `<div class="${s.type === 'CALL' ? 'call' : 'put'}">${s.type}</div>`;
-  document.getElementById("actif").innerText = s.actif;
-  document.getElementById("etat").innerHTML =
-    s.etat === "ATTENDRE" ? `<span class="wait">ATTENDRE</span>` : `<span class="enter">ENTRER</span>`;
-  document.getElementById("heure").innerText = "Entrée : " + s.heure;
-  document.getElementById("expiration").innerText = "Expiration : " + s.expiration;
-  document.getElementById("commentaire").innerText = s.commentaire;
-
-  // AJOUTER AU HISTORIQUE AUTOMATIQUEMENT
-  push(ref(db, "history"), {
-    actif: s.actif,
-    type: s.type,
-    etat: s.etat,
-    heure: s.heure,
-    expiration: s.expiration,
-    commentaire: s.commentaire,
-    timestamp: Date.now()
+function showTab(tab) {
+  state.currentTab = tab;
+  
+  // Mettre à jour les boutons actifs
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.classList.remove('active');
   });
-});
+  event.currentTarget.classList.add('active');
+  
+  // Scroll vers la section (simplifié pour mobile)
+  const sections = {
+    signal: 0,
+    market: 1,
+    auto: 2,
+    history: 3,
+    news: 4
+  };
+  
+  const cards = document.querySelectorAll('.card, .signal-main, .market-live, .auto-controls');
+  if (cards[sections[tab]]) {
+    cards[sections[tab]].scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
 
-// NEWS
-onValue(ref(db, "news"), (snap) => {
-  document.getElementById("news").innerText = snap.val() || "";
-});
+function updateSignalDisplay() {
+  const lastSignal = JSON.parse(localStorage.getItem("lastSignal"));
+  
+  if (lastSignal) {
+    // Mettre à jour avec le signal existant
+    document.getElementById('signal-action').textContent = lastSignal.action;
+    document.getElementById('signal-action').className = `signal-action signal-${lastSignal.action.toLowerCase()}`;
+    document.getElementById('risk-value').textContent = lastSignal.risk;
+    document.getElementById('time-value').textContent = lastSignal.time;
+    document.getElementById('signal-reason').textContent = lastSignal.reason || 'Signal manuel';
+    
+    // Mettre à jour le style du conteneur
+    const mainSignal = document.getElementById('signal-main');
+    mainSignal.style.borderColor = lastSignal.action === 'CALL' ? '#28a745' : 
+                                  lastSignal.action === 'PUT' ? '#dc3545' : '#ffc107';
+  } else {
+    // Afficher le dernier signal auto généré
+    const lastAutoSignal = JSON.parse(localStorage.getItem("lastAutoSignal"));
+    if (lastAutoSignal) {
+      document.getElementById('signal-action').textContent = lastAutoSignal.action;
+      document.getElementById('signal-action').className = `signal-action signal-${lastAutoSignal.action.toLowerCase()}`;
+      document.getElementById('risk-value').textContent = lastAutoSignal.risk;
+      document.getElementById('time-value').textContent = lastAutoSignal.time;
+      document.getElementById('signal-reason').textContent = lastAutoSignal.reason || 'Signal auto';
+    }
+  }
+}
 
-// FACEBOOK
-onValue(ref(db, "facebook"), (snap) => {
-  document.getElementById("facebook").href = snap.val() || "#";
-});
-
-// HISTORIQUE
-onValue(ref(db, "history"), (snap) => {
-  const list = document.getElementById("history");
-  list.innerHTML = "";
-  snap.forEach(item => {
-    const s = item.val();
-    const li = document.createElement("li");
-    li.innerText = `${s.actif} ${s.type} - ${s.etat} - ${s.heure}`;
-    list.prepend(li);
+function renderHistory() {
+  const tbody = document.getElementById('history-body');
+  tbody.innerHTML = '';
+  
+  const recentHistory = state.history.slice(0, 10);
+  
+  recentHistory.forEach(signal => {
+    const row = document.createElement('tr');
+    
+    // Formater l'heure
+    const time = signal.time.split(':').slice(0, 2).join(':');
+    
+    // Badge de signal
+    const signalClass = `badge-${signal.action.toLowerCase()}`;
+    
+    // Badge de risque
+    const riskClass = `risk-${signal.risk.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`;
+    
+    // Source
+    const source = signal.source === 'admin' ? '👨‍💼' : '🤖';
+    
+    row.innerHTML = `
+      <td style="font-size: 12px; color: #aaa;">${time}</td>
+      <td><span class="signal-badge ${signalClass}">${signal.action}</span></td>
+      <td><span class="badge-risk ${riskClass}">${signal.risk}</span></td>
+      <td style="text-align: center;">${source}</td>
+    `;
+    
+    tbody.appendChild(row);
   });
+  
+  // Mettre à jour le compteur
+  document.getElementById('signal-count').textContent = `${state.history.length} signaux`;
+}
+
+function updateMarketDisplay() {
+  // Simuler des données marché pour la démo
+  const price = 1.08250 + (Math.random() - 0.5) * 0.002;
+  const change = price - 1.08250;
+  const percent = (change / 1.08250) * 100;
+  
+  const priceClass = change >= 0 ? 'price-up' : 'price-down';
+  const trend = change >= CONFIG.TREND_THRESHOLD ? 'HAUSSIER' : 
+                change <= -CONFIG.TREND_THRESHOLD ? 'BAISSIER' : 'NEUTRE';
+  const trendClass = change >= 0 ? 'status-active' : 'status-paused';
+  
+  document.getElementById('current-price').textContent = price.toFixed(5);
+  document.getElementById('current-price').className = `current-price ${priceClass}`;
+  document.getElementById('price-change').textContent = `${change >= 0 ? '+' : ''}${change.toFixed(5)} (${percent.toFixed(2)}%)`;
+  document.getElementById('market-trend').textContent = trend;
+  document.getElementById('market-trend').className = `auto-status ${trendClass}`;
+  
+  // Stocker pour analyse
+  state.marketData = { price, change, percent, trend };
+  state.priceHistory.push({ price, time: Date.now() });
+  
+  // Garder seulement 50 prix
+  if (state.priceHistory.length > 50) {
+    state.priceHistory.shift();
+  }
+}
+
+// ====== SIGNAL AUTOMATIQUE ======
+function startAutoSignal() {
+  if (state.autoSignalActive) return;
+  
+  state.autoSignalActive = true;
+  
+  // Mettre à jour l'affichage
+  document.getElementById('auto-status').textContent = 'ACTIVE';
+  document.getElementById('auto-status').className = 'auto-status status-active';
+  
+  // Générer le premier signal immédiatement
+  generateAutoSignal();
+  
+  // Démarrer l'intervalle
+  state.autoSignalTimer = setInterval(generateAutoSignal, CONFIG.AUTO_INTERVAL);
+  
+  // Mettre à jour le timer d'affichage
+  updateNextAnalysisTime();
+  
+  showNotification('🤖 Signal auto ACTIVÉ', 'success');
+}
+
+function stopAutoSignal() {
+  if (!state.autoSignalActive) return;
+  
+  state.autoSignalActive = false;
+  
+  // Mettre à jour l'affichage
+  document.getElementById('auto-status').textContent = 'PAUSED';
+  document.getElementById('auto-status').className = 'auto-status status-paused';
+  
+  // Arrêter l'intervalle
+  if (state.autoSignalTimer) {
+    clearInterval(state.autoSignalTimer);
+    state.autoSignalTimer = null;
+  }
+  
+  showNotification('⏳ Signal auto PAUSÉ', 'warning');
+}
+
+function generateAutoSignal() {
+  if (!state.autoSignalActive || !state.marketData) return;
+  
+  // Analyser la tendance
+  const { price, change, percent, trend } = state.marketData;
+  
+  let action, risk, reason;
+  
+  if (trend === 'HAUSSIER' && Math.abs(percent) >= CONFIG.TREND_THRESHOLD) {
+    action = 'CALL';
+    risk = percent >= 0.1 ? 'FAIBLE' : 'MOYEN';
+    reason = `🤖 Auto: Tendance haussière (${percent.toFixed(2)}%)`;
+  } else if (trend === 'BAISSIER' && Math.abs(percent) >= CONFIG.TREND_THRESHOLD) {
+    action = 'PUT';
+    risk = percent <= -0.1 ? 'FAIBLE' : 'MOYEN';
+    reason = `🤖 Auto: Tendance baissière (${percent.toFixed(2)}%)`;
+  } else {
+    action = 'ATTENDRE';
+    risk = 'ÉLEVÉ';
+    reason = '🤖 Auto: Marché neutre, attente';
+  }
+  
+  // Créer le signal
+  const signal = {
+    time: new Date().toLocaleTimeString(),
+    action,
+    risk,
+    pair: "EUR/USD",
+    reason,
+    type: "auto_index",
+    price,
+    source: "auto"
+  };
+  
+  // Ajouter à l'historique
+  state.history.unshift(signal);
+  
+  // Limiter à 100 signaux
+  if (state.history.length > 100) {
+    state.history = state.history.slice(0, 100);
+  }
+  
+  // Sauvegarder
+  localStorage.setItem("signalHistory", JSON.stringify(state.history));
+  localStorage.setItem("lastAutoSignal", JSON.stringify(signal));
+  localStorage.setItem("lastUpdate", Date.now());
+  
+  // Mettre à jour l'affichage
+  updateSignalDisplay();
+  renderHistory();
+  
+  // Notification
+  showNotification(`🔄 Nouveau signal auto: ${action}`, 'info');
+  
+  // Mettre à jour le prochain timer
+  updateNextAnalysisTime();
+  
+  // Vibration
+  if (navigator.vibrate) {
+    navigator.vibrate([100, 50, 100]);
+  }
+}
+
+function updateNextAnalysisTime() {
+  if (!state.autoSignalActive) {
+    document.getElementById('next-analysis').textContent = '--:--';
+    return;
+  }
+  
+  const nextTime = new Date(Date.now() + CONFIG.AUTO_INTERVAL);
+  document.getElementById('next-analysis').textContent = nextTime.toLocaleTimeString().slice(0, 5);
+}
+
+// ====== RÉGLAGES ======
+function showAutoSettings() {
+  document.getElementById('settings-modal').style.display = 'flex';
+}
+
+function hideSettings() {
+  document.getElementById('settings-modal').style.display = 'none';
+}
+
+function saveAutoSettings() {
+  const interval = parseInt(document.getElementById('auto-interval').value);
+  const threshold = parseFloat(document.getElementById('trend-threshold').value);
+  
+  CONFIG.AUTO_INTERVAL = interval * 1000;
+  CONFIG.TREND_THRESHOLD = threshold;
+  
+  // Sauvegarder
+  localStorage.setItem('autoInterval', CONFIG.AUTO_INTERVAL);
+  localStorage.setItem('trendThreshold', CONFIG.TREND_THRESHOLD);
+  
+  // Redémarrer le timer si actif
+  if (state.autoSignalActive) {
+    stopAutoSignal();
+    startAutoSignal();
+  }
+  
+  hideSettings();
+  showNotification('⚙️ Réglages sauvegardés', 'success');
+}
+
+// ====== VÉRIFICATION DES MISES À JOUR ======
+function checkForUpdates() {
+  const currentLastUpdate = localStorage.getItem("lastUpdate");
+  
+  if (currentLastUpdate && currentLastUpdate !== state.lastUpdate) {
+    state.lastUpdate = currentLastUpdate;
+    
+    // Recharger l'historique
+    state.history = JSON.parse(localStorage.getItem("signalHistory")) || [];
+    
+    // Vérifier si c'est un signal admin
+    const signalSource = localStorage.getItem("signalSource");
+    if (signalSource === 'admin') {
+      // C'est un signal de l'admin, mettre à jour l'affichage
+      updateSignalDisplay();
+      renderHistory();
+      showNotification('👨‍💼 Nouveau signal admin reçu!', 'warning');
+      
+      // Effacer la source pour éviter les répétitions
+      localStorage.removeItem("signalSource");
+    }
+  }
+  
+  // Vérifier les news
+  const newsUpdate = localStorage.getItem("newsUpdate");
+  if (newsUpdate) {
+    const news = localStorage.getItem("newsContent");
+    if (news) {
+      document.getElementById('news-content').textContent = news;
+      const time = new Date(parseInt(newsUpdate)).toLocaleTimeString();
+      document.getElementById('news-time').textContent = `Mis à jour: ${time}`;
+    }
+  }
+}
+
+// ====== INITIALISATION ======
+document.addEventListener('DOMContentLoaded', function() {
+  // Charger l'historique
+  state.history = JSON.parse(localStorage.getItem("signalHistory")) || [];
+  
+  // Initialiser l'affichage
+  updateSignalDisplay();
+  updateMarketDisplay();
+  renderHistory();
+  
+  // Charger les news
+  const news = localStorage.getItem("newsContent");
+  if (news) {
+    document.getElementById('news-content').textContent = news;
+  }
+  
+  // Mettre à jour le marché toutes les 10 secondes
+  setInterval(updateMarketDisplay, 10000);
+  
+  // Vérifier les mises à jour toutes les 3 secondes
+  setInterval(checkForUpdates, 3000);
+  
+  // Démarrer le signal auto si configuré
+  const autoStart = localStorage.getItem('autoStart') === 'true';
+  if (autoStart) {
+    setTimeout(() => startAutoSignal(), 2000);
+  }
+  
+  // Configuration tactile pour mobile
+  document.addEventListener('touchstart', function() {}, { passive: true });
 });
+
+// ====== SERVICE WORKER POUR PUSH ======
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(console.error);
+}
+
+// ====== GESTION HORS LIGNE ======
+window.addEventListener('online', function() {
+  showNotification('🌐 Connecté', 'success');
+});
+
+window.addEventListener('offline', function() {
+  showNotification('📶 Hors ligne - Mode local', 'warning');
+});
+
 </script>
+
 </body>
 </html>

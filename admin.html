@@ -2,74 +2,642 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Admin Signal</title>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBYTj0oxyGyYMGuG3oS3I9rsJztkKI19cQ",
-  authDomain: "signal-trading-dc7e1.firebaseapp.com",
-  databaseURL: "https://signal-trading-dc7e1-default-rtdb.firebaseio.com",
-  projectId: "signal-trading-dc7e1",
-  storageBucket: "signal-trading-dc7e1.firebasestorage.app",
-  messagingSenderId: "1079678337192",
-  appId: "1:1079678337192:web:0ae573263a9772acb9029d",
-  measurementId: "G-MM3GRDYVLX"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-// Vérif mot de passe admin
-if (prompt("Mot de passe admin") !== "admin123") {
-  document.body.innerHTML = "";
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Typh Tech - Admin</title>
+<style>
+/* RESET MOBILE */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { 
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+  background: #0a0a0a; 
+  color: #ffffff; 
+  line-height: 1.4;
+  padding-bottom: 80px;
 }
 
-window.sendSignal = () => {
-  const s = {
-    actif: document.getElementById("actif").value,
-    type: document.getElementById("type").value,
-    etat: document.getElementById("etat").value,
-    heure: document.getElementById("heure").value,
-    expiration: document.getElementById("expiration").value,
-    commentaire: document.getElementById("commentaire").value
-  };
-  set(ref(db, "currentSignal"), s);
-};
+/* HEADER */
+.header {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  color: white;
+  padding: 15px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
 
-window.sendNews = () => {
-  set(ref(db, "news"), document.getElementById("news").value);
-};
+.header-sub {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 3px;
+}
 
-window.setFacebook = () => {
-  set(ref(db, "facebook"), document.getElementById("facebook").value);
-};
-</script>
-<style>
-body { font-family: Arial; background:#020617; color:#fff; padding:20px }
-input, select, textarea, button { width:100%; margin:5px 0; padding:10px }
-button { background:#22c55e; font-weight:bold }
+/* CONTAINER */
+.container {
+  padding: 15px;
+}
+
+/* CARTES */
+.card {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 15px;
+  border: 1px solid #2a2a2a;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #0d6efd;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* FORMULAIRES MOBILE */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: #aaa;
+}
+
+.select-wrapper, .input-wrapper {
+  position: relative;
+}
+
+select, input, textarea {
+  width: 100%;
+  padding: 14px;
+  background: #2a2a2a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 20px;
+}
+
+option {
+  background: #2a2a2a;
+  padding: 10px;
+}
+
+option[value="CALL"] { color: #28a745; }
+option[value="PUT"] { color: #dc3545; }
+option[value="ATTENDRE"] { color: #ffc107; }
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+/* BOUTONS MOBILE */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 10px;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  color: white;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+  color: white;
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+  color: #000;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%);
+  color: white;
+}
+
+/* STATUT MARCHÉ */
+.market-status {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-left: 4px solid #0d6efd;
+}
+
+.market-price {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 10px 0;
+}
+
+.price-up { color: #28a745; }
+.price-down { color: #dc3545; }
+.price-neutral { color: #ffc107; }
+
+/* NOTIFICATIONS */
+.notification {
+  position: fixed;
+  top: 70px;
+  left: 15px;
+  right: 15px;
+  background: #28a745;
+  color: white;
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 600;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  display: none;
+}
+
+/* FOOTER FIXE */
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #1a1a1a;
+  padding: 12px 15px;
+  border-top: 1px solid #333;
+  display: flex;
+  gap: 10px;
+  z-index: 100;
+}
+
+.footer-btn {
+  flex: 1;
+  padding: 12px;
+  background: #2a2a2a;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.footer-btn.active {
+  background: #0d6efd;
+}
+
+/* ICONES */
+.icon {
+  font-size: 20px;
+}
+
+/* SWITCH */
+.switch-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 0;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 28px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #333;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #28a745;
+}
+
+input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
+/* RESPONSIVE */
+@media (min-width: 768px) {
+  .container {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  
+  .footer {
+    max-width: 500px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+/* ANIMATIONS */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
 </style>
 </head>
 <body>
 
-<h2>📤 Publier Signal</h2>
-<input id="actif" placeholder="Actif">
-<select id="type"><option>CALL</option><option>PUT</option></select>
-<select id="etat"><option>ENTRER</option><option>ATTENDRE</option></select>
-<input id="heure" placeholder="Heure">
-<input id="expiration" placeholder="Expiration">
-<textarea id="commentaire" placeholder="Commentaire"></textarea>
-<button onclick="sendSignal()">PUBLIER</button>
+<!-- NOTIFICATION -->
+<div id="notification" class="notification"></div>
 
-<h2>📰 News</h2>
-<textarea id="news" placeholder="Nouvelle annonce..."></textarea>
-<button onclick="sendNews()">PUBLIER NEWS</button>
+<!-- HEADER -->
+<header class="header">
+  <div>📱 Typh Tech Admin</div>
+  <div class="header-sub">Signal Control Panel</div>
+</header>
 
-<h2>📘 Groupe Facebook Formations</h2>
-<input id="facebook" placeholder="Lien du groupe Facebook">
-<button onclick="setFacebook()">ENREGISTRER</button>
+<!-- CONTENU PRINCIPAL -->
+<main class="container">
+
+  <!-- SECTION MARCHÉ -->
+  <div class="card">
+    <div class="card-title">📈 Marché EUR/USD</div>
+    <div id="market-data">
+      <div style="text-align: center; padding: 20px;">
+        <div class="spinner"></div>
+        <p>Chargement du marché...</p>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="getMarketData()">
+      <span class="icon">🔄</span> Actualiser Marché
+    </button>
+  </div>
+
+  <!-- SIGNAL MANUEL -->
+  <div class="card">
+    <div class="card-title">✍️ Signal Manuel</div>
+    <div class="form-group">
+      <label class="form-label">Type de Signal</label>
+      <div class="select-wrapper">
+        <select id="admin-action">
+          <option value="CALL">📈 CALL (Achat)</option>
+          <option value="PUT">📉 PUT (Vente)</option>
+          <option value="ATTENDRE">⏸️ ATTENDRE</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Niveau de Risque</label>
+      <div class="select-wrapper">
+        <select id="admin-risk">
+          <option value="FAIBLE">🟢 FAIBLE</option>
+          <option value="MOYEN" selected>🟡 MOYEN</option>
+          <option value="ÉLEVÉ">🔴 ÉLEVÉ</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Message (optionnel)</label>
+      <textarea id="signal-message" placeholder="Raison du signal..."></textarea>
+    </div>
+    
+    <button class="btn btn-success" onclick="sendManualSignal()">
+      <span class="icon">🚀</span> Envoyer Signal
+    </button>
+  </div>
+
+  <!-- CONFIGURATION -->
+  <div class="card">
+    <div class="card-title">⚙️ Configuration</div>
+    
+    <div class="form-group">
+      <label class="form-label">Intervalle News (minutes)</label>
+      <input type="number" id="news-interval" value="60" min="1" max="1440">
+    </div>
+    
+    <div class="switch-container">
+      <span>Notifications Push</span>
+      <label class="switch">
+        <input type="checkbox" id="push-notifications" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    
+    <div class="switch-container">
+      <span>Mode Expert</span>
+      <label class="switch">
+        <input type="checkbox" id="expert-mode">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- NEWS / MESSAGES -->
+  <div class="card">
+    <div class="card-title">📢 News & Messages</div>
+    <textarea id="admin-news" placeholder="Écrivez vos news ou messages pour les traders..."></textarea>
+    <button class="btn btn-warning" onclick="updateNews()">
+      <span class="icon">💬</span> Publier News
+    </button>
+  </div>
+
+</main>
+
+<!-- FOOTER MOBILE -->
+<footer class="footer">
+  <button class="footer-btn active" onclick="showSection('market')">
+    <span class="icon">📈</span>
+    <span>Marché</span>
+  </button>
+  <button class="footer-btn" onclick="showSection('signal')">
+    <span class="icon">✍️</span>
+    <span>Signal</span>
+  </button>
+  <button class="footer-btn" onclick="showSection('config')">
+    <span class="icon">⚙️</span>
+    <span>Config</span>
+  </button>
+  <button class="footer-btn" onclick="showSection('news')">
+    <span class="icon">📢</span>
+    <span>News</span>
+  </button>
+</footer>
+
+<script>
+// ====== VARIABLES GLOBALES ======
+let history = JSON.parse(localStorage.getItem("signalHistory")) || [];
+let currentSection = 'market';
+
+// ====== FONCTIONS D'AFFICHAGE ======
+function showNotification(message, type = 'success') {
+  const notif = document.getElementById('notification');
+  notif.textContent = message;
+  notif.style.display = 'block';
+  
+  // Couleur selon le type
+  switch(type) {
+    case 'success':
+      notif.style.background = 'linear-gradient(135deg, #28a745 0%, #1e7e34 100%)';
+      break;
+    case 'warning':
+      notif.style.background = 'linear-gradient(135deg, #ffc107 0%, #e0a800 100%)';
+      notif.style.color = '#000';
+      break;
+    case 'error':
+      notif.style.background = 'linear-gradient(135deg, #dc3545 0%, #bd2130 100%)';
+      break;
+    default:
+      notif.style.background = 'linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%)';
+  }
+  
+  // Masquer après 3 secondes
+  setTimeout(() => {
+    notif.style.display = 'none';
+  }, 3000);
+}
+
+function showSection(section) {
+  currentSection = section;
+  
+  // Mettre à jour les boutons actifs
+  document.querySelectorAll('.footer-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.currentTarget.classList.add('active');
+  
+  // Scroll vers la section correspondante
+  const sections = {
+    'market': 0,
+    'signal': 1,
+    'config': 2,
+    'news': 3
+  };
+  
+  const cards = document.querySelectorAll('.card');
+  if (cards[sections[section]]) {
+    cards[sections[section]].scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+// ====== FONCTIONS MARCHÉ ======
+async function getMarketData() {
+  const marketDiv = document.getElementById('market-data');
+  marketDiv.innerHTML = `
+    <div style="text-align: center; padding: 10px;">
+      <div class="pulse">⏳</div>
+      <p style="margin-top: 10px;">Analyse en cours...</p>
+    </div>
+  `;
+  
+  try {
+    // Simulation de données marché (remplacer par API réelle)
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const price = 1.08250 + (Math.random() - 0.5) * 0.002;
+    const change = price - 1.08250;
+    const percent = (change / 1.08250) * 100;
+    
+    const priceClass = change >= 0 ? 'price-up' : 'price-down';
+    const trend = change >= 0.001 ? 'HAUSSIER' : change <= -0.001 ? 'BAISSIER' : 'NEUTRE';
+    const trendClass = change >= 0.001 ? 'price-up' : change <= -0.001 ? 'price-down' : 'price-neutral';
+    
+    marketDiv.innerHTML = `
+      <div class="market-price ${priceClass}">${price.toFixed(5)}</div>
+      <div style="margin: 10px 0;">
+        <span class="${priceClass}">${change >= 0 ? '↗️ +' : '↘️ '}${change.toFixed(5)} (${percent.toFixed(2)}%)</span>
+      </div>
+      <div style="background: #2a2a2a; padding: 10px; border-radius: 8px; margin-top: 10px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+          <span>Tendance:</span>
+          <span class="${trendClass}">${trend}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span>Support:</span>
+          <span>${(price - 0.001).toFixed(5)}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span>Résistance:</span>
+          <span>${(price + 0.001).toFixed(5)}</span>
+        </div>
+      </div>
+    `;
+    
+    showNotification('✅ Données marché actualisées', 'success');
+    
+  } catch (error) {
+    marketDiv.innerHTML = `
+      <div style="text-align: center; color: #dc3545; padding: 20px;">
+        <p>❌ Erreur de connexion</p>
+        <p style="font-size: 12px;">${error.message}</p>
+      </div>
+    `;
+    showNotification('❌ Erreur de connexion au marché', 'error');
+  }
+}
+
+// ====== FONCTIONS SIGNAL ======
+function sendManualSignal() {
+  const action = document.getElementById('admin-action').value;
+  const risk = document.getElementById('admin-risk').value;
+  const message = document.getElementById('signal-message').value;
+  const time = new Date().toLocaleTimeString();
+  
+  // Créer le signal
+  const signal = {
+    time,
+    action,
+    risk,
+    pair: "EUR/USD",
+    reason: message || `Signal manuel admin - ${action}`,
+    type: "manual_admin",
+    price: 1.08250 + (Math.random() - 0.5) * 0.002,
+    source: "admin"
+  };
+  
+  // Ajouter à l'historique
+  history.unshift(signal);
+  
+  // Limiter à 100 signaux
+  if (history.length > 100) {
+    history = history.slice(0, 100);
+  }
+  
+  // Sauvegarder
+  localStorage.setItem("signalHistory", JSON.stringify(history));
+  localStorage.setItem("lastSignal", JSON.stringify(signal));
+  localStorage.setItem("lastUpdate", Date.now());
+  localStorage.setItem("signalSource", "admin");
+  
+  // Notification
+  const actionIcon = action === 'CALL' ? '📈' : action === 'PUT' ? '📉' : '⏸️';
+  const riskColor = risk === 'FAIBLE' ? '🟢' : risk === 'MOYEN' ? '🟡' : '🔴';
+  
+  showNotification(`${actionIcon} Signal ${action} envoyé! ${riskColor}`, 'success');
+  
+  // Vibration si supportée
+  if (navigator.vibrate) {
+    navigator.vibrate([100, 50, 100]);
+  }
+  
+  // Réinitialiser le message
+  document.getElementById('signal-message').value = '';
+}
+
+// ====== FONCTIONS NEWS ======
+function updateNews() {
+  const news = document.getElementById('admin-news').value;
+  
+  if (!news.trim()) {
+    showNotification('❌ Veuillez écrire un message', 'error');
+    return;
+  }
+  
+  localStorage.setItem("newsContent", news);
+  localStorage.setItem("newsUpdate", Date.now());
+  localStorage.setItem("newsAuthor", "admin");
+  
+  showNotification('📢 News publiées avec succès!', 'success');
+  
+  // Réinitialiser
+  document.getElementById('admin-news').value = '';
+}
+
+// ====== INITIALISATION ======
+document.addEventListener('DOMContentLoaded', function() {
+  // Charger les données initiales
+  getMarketData();
+  
+  // Charger les news existantes
+  const existingNews = localStorage.getItem("newsContent");
+  if (existingNews) {
+    document.getElementById('admin-news').value = existingNews;
+  }
+  
+  // Charger la configuration
+  const savedInterval = localStorage.getItem("newsInterval");
+  if (savedInterval) {
+    document.getElementById('news-interval').value = savedInterval;
+  }
+  
+  // Vérifier les notifications
+  if (Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+  
+  // Raccourci tactile pour envoyer signal
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 'Enter') {
+      sendManualSignal();
+    }
+  });
+});
+
+// ====== SERVICE WORKER PUSH ======
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(console.error);
+}
+
+</script>
 
 </body>
 </html>
