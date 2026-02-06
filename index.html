@@ -1,896 +1,1092 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>📊TYPH SIGNAL TRADING</title>
-<style>
-/* RESET MOBILE */
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { 
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-  background: #0a0a0a; 
-  color: #ffffff; 
-  line-height: 1.4;
-  padding-bottom: 70px;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* HEADER */
-.header {
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-  color: white;
-  padding: 15px;
-  text-align: center;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-
-.header-title {
-  font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 3px;
-}
-
-.header-sub {
-  font-size: 12px;
-  opacity: 0.8;
-}
-
-/* CONTAINER */
-.container {
-  padding: 15px;
-}
-
-/* CARTES */
-.card {
-  background: #1a1a1a;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 15px;
-  border: 1px solid #2a2a2a;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-/* SIGNAL PRINCIPAL */
-.signal-main {
-  text-align: center;
-  padding: 25px 20px;
-  margin-bottom: 20px;
-  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-  border-radius: 16px;
-  border: 2px solid #2a2a2a;
-}
-
-.signal-action {
-  font-size: 42px;
-  font-weight: 800;
-  margin-bottom: 10px;
-  letter-spacing: 1px;
-}
-
-.signal-call { color: #28a745; }
-.signal-put { color: #dc3545; }
-.signal-attendre { color: #ffc107; }
-
-.signal-info {
-  font-size: 14px;
-  color: #aaa;
-  margin: 5px 0;
-}
-
-.signal-reason {
-  background: #2a2a2a;
-  padding: 10px;
-  border-radius: 8px;
-  margin-top: 15px;
-  font-size: 13px;
-  color: #ddd;
-  border-left: 3px solid #0d6efd;
-}
-
-/* MARCHÉ EN DIRECT */
-.market-live {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px;
-  background: #2a2a2a;
-  border-radius: 12px;
-  margin-bottom: 15px;
-}
-
-.price-container {
-  text-align: center;
-}
-
-.current-price {
-  font-size: 24px;
-  font-weight: 700;
-}
-
-.price-up { color: #28a745; }
-.price-down { color: #dc3545; }
-.price-neutral { color: #ffc107; }
-
-.price-change {
-  font-size: 12px;
-  opacity: 0.8;
-}
-
-/* CONTROLES AUTO SIGNAL */
-.auto-controls {
-  background: #1a1a1a;
-  border-radius: 12px;
-  padding: 15px;
-  margin-bottom: 15px;
-  border: 2px solid #2a2a2a;
-}
-
-.control-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.control-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #0d6efd;
-}
-
-.auto-status {
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.status-active { background: #28a745; color: white; }
-.status-paused { background: #ffc107; color: black; }
-
-.control-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.control-btn {
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.control-btn:active {
-  transform: scale(0.96);
-}
-
-.btn-start { background: #28a745; color: white; }
-.btn-stop { background: #dc3545; color: white; }
-.btn-settings { background: #6c757d; color: white; }
-.btn-refresh { background: #0d6efd; color: white; }
-
-/* HISTORIQUE */
-.history-container {
-  max-height: 300px;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.history-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.history-table th {
-  background: #2a2a2a;
-  padding: 12px;
-  font-size: 12px;
-  color: #aaa;
-  text-align: left;
-  position: sticky;
-  top: 0;
-}
-
-.history-table td {
-  padding: 12px;
-  border-bottom: 1px solid #2a2a2a;
-  font-size: 13px;
-}
-
-.signal-badge {
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.badge-call { background: rgba(40, 167, 69, 0.2); color: #28a745; }
-.badge-put { background: rgba(220, 53, 69, 0.2); color: #dc3545; }
-.badge-attendre { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
-
-.badge-risk {
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 10px;
-}
-
-.risk-faible { background: rgba(40, 167, 69, 0.3); color: #28a745; }
-.risk-moyen { background: rgba(255, 193, 7, 0.3); color: #ffc107; }
-.risk-eleve { background: rgba(220, 53, 69, 0.3); color: #dc3545; }
-
-/* NEWS */
-.news-card {
-  background: #1a1a1a;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 15px;
-  border-left: 4px solid #0d6efd;
-}
-
-.news-content {
-  margin-top: 10px;
-  padding: 15px;
-  background: #2a2a2a;
-  border-radius: 8px;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.news-time {
-  font-size: 11px;
-  color: #666;
-  margin-top: 10px;
-  text-align: right;
-}
-
-/* FOOTER NAV */
-.footer-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #1a1a1a;
-  padding: 10px 15px;
-  border-top: 1px solid #333;
-  display: flex;
-  justify-content: space-around;
-  z-index: 100;
-}
-
-.nav-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: none;
-  border: none;
-  color: #666;
-  font-size: 10px;
-  padding: 8px;
-  min-width: 60px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.nav-btn.active {
-  color: #0d6efd;
-}
-
-.nav-btn:active {
-  transform: scale(0.95);
-}
-
-.nav-icon {
-  font-size: 20px;
-  margin-bottom: 4px;
-}
-
-/* NOTIFICATIONS */
-.notification {
-  position: fixed;
-  top: 70px;
-  left: 15px;
-  right: 15px;
-  background: #28a745;
-  color: white;
-  padding: 15px;
-  border-radius: 10px;
-  text-align: center;
-  font-weight: 600;
-  z-index: 1000;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  display: none;
-}
-
-/* LOADER */
-.loader {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 2px solid #333;
-  border-top: 2px solid #0d6efd;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* ANIMATIONS */
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.7; }
-  100% { opacity: 1; }
-}
-
-.pulse {
-  animation: pulse 2s infinite;
-}
-
-@keyframes slideIn {
-  from { transform: translateY(-10px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-.slide-in {
-  animation: slideIn 0.3s ease-out;
-}
-
-/* RESPONSIVE */
-@media (min-width: 768px) {
-  .container {
-    max-width: 500px;
-    margin: 0 auto;
-  }
-  
-  .footer-nav {
-    max-width: 500px;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Typh Trading - Signaux Live</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d6efd">
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        :root {
+            --call-color: #10b981;
+            --put-color: #ef4444;
+            --wait-color: #f59e0b;
+            --bg-primary: #0a0e17;
+            --bg-secondary: #1a2236;
+            --bg-card: #1a2236;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0aec0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 100%;
+            padding: 15px;
+            padding-bottom: 80px; /* Pour le bottom nav */
+        }
+        
+        /* Header */
+        .app-header {
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+            color: white;
+            padding: 20px 15px;
+            text-align: center;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .app-header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .app-header .subtitle {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        /* Signal principal */
+        .main-signal {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 25px 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            border: 1px solid #2a3449;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .signal-action {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin: 15px 0;
+            text-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .signal-call { color: var(--call-color); }
+        .signal-put { color: var(--put-color); }
+        .signal-wait { color: var(--wait-color); }
+        
+        .signal-pair {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+        
+        .signal-details {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #2a3449;
+        }
+        
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .detail-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+        
+        .detail-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        /* Bouton Auto Signal */
+        .auto-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #2a3449;
+        }
+        
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #4b5563;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--call-color);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(30px);
+        }
+        
+        /* Statistiques marché */
+        .market-stats {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #2a3449;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: 5px 0;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Historique */
+        .history-section {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #2a3449;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--wait-color);
+            transition: transform 0.2s;
+        }
+        
+        .history-item:active {
+            transform: scale(0.98);
+        }
+        
+        .history-item.call { border-left-color: var(--call-color); }
+        .history-item.put { border-left-color: var(--put-color); }
+        .history-item.wait { border-left-color: var(--wait-color); }
+        
+        .history-time {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .history-action {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .history-risk {
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* News */
+        .news-section {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #2a3449;
+        }
+        
+        .news-content {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 10px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid #2a3449;
+            z-index: 1000;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.75rem;
+            transition: color 0.2s;
+            padding: 5px 10px;
+            border-radius: 10px;
+        }
+        
+        .nav-item.active {
+            color: #0d6efd;
+            background: rgba(13, 110, 253, 0.1);
+        }
+        
+        .nav-icon {
+            font-size: 1.3rem;
+            margin-bottom: 3px;
+        }
+        
+        /* Notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 15px;
+            left: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            z-index: 1001;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            transform: translateY(-100px);
+            opacity: 0;
+            transition: transform 0.3s, opacity 0.3s;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .toast.success { background: linear-gradient(135deg, var(--call-color) 0%, #059669 100%); }
+        .toast.warning { background: linear-gradient(135deg, var(--wait-color) 0%, #d97706 100%); }
+        .toast.error { background: linear-gradient(135deg, var(--put-color) 0%, #dc2626 100%); }
+        
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .pulse-animation {
+            animation: pulse 0.5s ease-in-out;
+        }
+        
+        /* Responsive */
+        @media (min-width: 768px) {
+            .container {
+                max-width: 500px;
+                margin: 0 auto;
+            }
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 10px;
+        }
+    </style>
 </head>
 <body>
-
-<!-- NOTIFICATION -->
-<div id="notification" class="notification"></div>
-
-<!-- HEADER -->
-<header class="header">
-  <div class="header-title">📊 TYPH SIGNAL TRADING</div>
-  <div class="header-sub">EUR/USD • M1 • Temps Réel</div>
-</header>
-
-<!-- CONTENU PRINCIPAL -->
-<main class="container">
-
-  <!-- SIGNAL ACTUEL -->
-  <div class="signal-main" id="signal-main">
-    <div class="signal-action" id="signal-action">ATTENDRE</div>
-    <div class="signal-info" id="signal-pair">EUR/USD</div>
-    <div class="signal-info" id="signal-risk">Risque: <span id="risk-value">MOYEN</span></div>
-    <div class="signal-info" id="signal-time">Heure: <span id="time-value">--:--</span></div>
-    <div class="signal-reason" id="signal-reason">En attente de signal...</div>
-  </div>
-
-  <!-- MARCHÉ EN DIRECT -->
-  <div class="market-live">
-    <div class="price-container">
-      <div class="current-price" id="current-price">1.08250</div>
-      <div class="price-change" id="price-change">+0.00050 (+0.05%)</div>
-    </div>
-    <div style="text-align: right;">
-      <div style="font-size: 12px; color: #aaa; margin-bottom: 5px;">Tendance</div>
-      <div class="auto-status status-active" id="market-trend">HAUSSIER</div>
-    </div>
-  </div>
-
-  <!-- SIGNAL AUTO -->
-  <div class="auto-controls">
-    <div class="control-header">
-      <div class="control-title">🤖 Signal Automatique</div>
-      <div class="auto-status status-paused" id="auto-status">PAUSED</div>
+    <!-- Header -->
+    <div class="app-header">
+        <h1><i class="fas fa-chart-line"></i> Typh Signals</h1>
+        <div class="subtitle">
+            <span id="connection-status"><i class="fas fa-wifi"></i> Connecté</span>
+            <span>•</span>
+            <span id="last-update">--:--</span>
+        </div>
     </div>
     
-    <div class="control-buttons">
-      <button class="control-btn btn-start" onclick="startAutoSignal()">
-        <span>💰</span> Démarrer
-      </button>
-      <button class="control-btn btn-stop" onclick="stopAutoSignal()">
-        <span>⏳</span> Pause
-      </button>
-      <button class="control-btn btn-settings" onclick="showAutoSettings()">
-        <span>⚙️</span> Réglages
-      </button>
-      <button class="control-btn btn-refresh" onclick="generateAutoSignal()">
-        <span>↩️</span> Générer
-      </button>
+    <div class="container">
+        <!-- Signal principal -->
+        <div class="main-signal" id="main-signal">
+            <div class="signal-pair" id="signal-pair">EUR/USD</div>
+            <div class="signal-action signal-wait" id="signal-action">ATTENDRE</div>
+            <div class="signal-details">
+                <div class="detail-item">
+                    <div class="detail-label">Risque</div>
+                    <div class="detail-value" id="signal-risk">MOYEN</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Heure</div>
+                    <div class="detail-value" id="signal-time">--:--</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Source</div>
+                    <div class="detail-value" id="signal-source">Auto</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Toggle Auto Signal -->
+        <div class="auto-toggle">
+            <div class="toggle-label">
+                <i class="fas fa-robot"></i>
+                <span>Signal Automatique</span>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="auto-toggle" checked>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+        
+        <!-- Statistiques marché -->
+        <div class="market-stats">
+            <div class="section-header">
+                <div class="section-title">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Statistiques Marché</span>
+                </div>
+                <button class="refresh-btn" id="refresh-stats" style="background: none; border: none; color: #0d6efd; font-size: 1.2rem;">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Signaux Aujourd'hui</div>
+                    <div class="stat-value" id="today-signals">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Précision</div>
+                    <div class="stat-value" id="accuracy-rate">--%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">CALLs réussis</div>
+                    <div class="stat-value" id="success-calls">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">PUTs réussis</div>
+                    <div class="stat-value" id="success-puts">0</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Historique des signaux -->
+        <div class="history-section">
+            <div class="section-header">
+                <div class="section-title">
+                    <i class="fas fa-history"></i>
+                    <span>Historique Récent</span>
+                </div>
+                <span class="history-count" id="history-count">0 signaux</span>
+            </div>
+            
+            <div class="history-list" id="history-list">
+                <!-- Les signaux seront injectés ici par JavaScript -->
+                <div class="history-item wait">
+                    <div class="history-time">--:--</div>
+                    <div class="history-action">Chargement...</div>
+                    <div class="history-risk">--</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- News & Alertes -->
+        <div class="news-section">
+            <div class="section-header">
+                <div class="section-title">
+                    <i class="fas fa-newspaper"></i>
+                    <span>News & Alertes</span>
+                </div>
+                <div class="news-time" id="news-time">--:--</div>
+            </div>
+            
+            <div class="news-content" id="news-content">
+                Aucune news pour le moment
+            </div>
+        </div>
     </div>
     
-    <div style="font-size: 12px; color: #666; text-align: center;">
-      Prochaine analyse: <span id="next-analysis">--:--</span>
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item active">
+            <i class="fas fa-home nav-icon"></i>
+            <span>Accueil</span>
+        </a>
+        <a href="admin.html" class="nav-item">
+            <i class="fas fa-user-shield nav-icon"></i>
+            <span>Admin</span>
+        </a>
+        <a href="#" class="nav-item" id="refresh-btn">
+            <i class="fas fa-sync-alt nav-icon"></i>
+            <span>Actualiser</span>
+        </a>
+        <a href="#" class="nav-item" id="stats-btn">
+            <i class="fas fa-chart-pie nav-icon"></i>
+            <span>Stats</span>
+        </a>
+        <a href="#" class="nav-item" id="settings-btn">
+            <i class="fas fa-cog nav-icon"></i>
+            <span>Réglages</span>
+        </a>
     </div>
-  </div>
-
-  <!-- HISTORIQUE -->
-  <div class="card">
-    <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
-      <span>📊 Historique des Signaux</span>
-      <span style="font-size: 12px; color: #666;" id="signal-count">0 signaux</span>
-    </div>
-    <div class="history-container">
-      <table class="history-table">
-        <thead>
-          <tr>
-            <th>Heure</th>
-            <th>Signal</th>
-            <th>Risque</th>
-            <th>Source</th>
-          </tr>
-        </thead>
-        <tbody id="history-body">
-          <!-- Rempli par JavaScript -->
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- NEWS -->
-  <div class="news-card">
-    <div class="card-title">📢 Dernières News</div>
-    <div class="news-content" id="news-content">
-      Chargement des dernières news...
-    </div>
-    <div class="news-time" id="news-time"></div>
-  </div>
-
-</main>
-
-<!-- NAVIGATION MOBILE -->
-<nav class="footer-nav">
-  <button class="nav-btn active" onclick="showTab('signal')">
-    <span class="nav-icon">📈</span>
-    <span>Signal</span>
-  </button>
-  <button class="nav-btn" onclick="showTab('market')">
-    <span class="nav-icon">💹</span>
-    <span>Marché</span>
-  </button>
-  <button class="nav-btn" onclick="showTab('auto')">
-    <span class="nav-icon">🤖</span>
-    <span>Auto</span>
-  </button>
-  <button class="nav-btn" onclick="showTab('history')">
-    <span class="nav-icon">📊</span>
-    <span>Historique</span>
-  </button>
-  <button class="nav-btn" onclick="showTab('news')">
-    <span class="nav-icon">📢</span>
-    <span>News</span>
-  </button>
-</nav>
-
-<!-- MODAL SETTINGS (caché) -->
-<div id="settings-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
-  <div style="background: #1a1a1a; border-radius: 16px; padding: 20px; width: 90%; max-width: 400px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-      <h3 style="color: #0d6efd;">⚙️ Réglages Auto Signal</h3>
-      <button onclick="hideSettings()" style="background: none; border: none; color: #666; font-size: 24px; cursor: pointer;">×</button>
-    </div>
-    <div style="margin-bottom: 15px;">
-      <label style="display: block; margin-bottom: 8px; color: #aaa;">Intervalle (secondes)</label>
-      <input type="number" id="auto-interval" value="60" min="10" max="300" style="width: 100%; padding: 12px; background: #2a2a2a; border: 1px solid #333; border-radius: 8px; color: white;">
-    </div>
-    <div style="margin-bottom: 15px;">
-      <label style="display: block; margin-bottom: 8px; color: #aaa;">Seuil tendance (%)</label>
-      <input type="number" id="trend-threshold" value="0.05" min="0.01" max="0.5" step="0.01" style="width: 100%; padding: 12px; background: #2a2a2a; border: 1px solid #333; border-radius: 8px; color: white;">
-    </div>
-    <button onclick="saveAutoSettings()" style="width: 100%; padding: 15px; background: #0d6efd; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px;">
-      💾 Sauvegarder
-    </button>
-  </div>
-</div>
-
-<script>
-// ====== CONFIGURATION ======
-const CONFIG = {
-  AUTO_INTERVAL: parseInt(localStorage.getItem('autoInterval')) || 60000, // 1 minute par défaut
-  TREND_THRESHOLD: parseFloat(localStorage.getItem('trendThreshold')) || 0.05,
-  MARKET_API: 'https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=EUR&to_currency=USD&apikey=demo'
-};
-
-// ====== ÉTAT GLOBAL ======
-let state = {
-  autoSignalActive: false,
-  autoSignalTimer: null,
-  history: JSON.parse(localStorage.getItem("signalHistory")) || [],
-  marketData: null,
-  priceHistory: [],
-  currentTab: 'signal',
-  lastUpdate: localStorage.getItem("lastUpdate") || 0
-};
-
-// ====== FONCTIONS D'AFFICHAGE ======
-function showNotification(message, type = 'info') {
-  const notif = document.getElementById('notification');
-  notif.textContent = message;
-  notif.style.display = 'block';
-  
-  // Couleur selon type
-  const colors = {
-    success: '#28a745',
-    warning: '#ffc107',
-    error: '#dc3545',
-    info: '#0d6efd'
-  };
-  
-  notif.style.background = colors[type] || colors.info;
-  
-  // Masquer après 3s
-  setTimeout(() => {
-    notif.style.display = 'none';
-  }, 3000);
-  
-  // Vibration mobile
-  if (navigator.vibrate) {
-    navigator.vibrate(100);
-  }
-}
-
-function showTab(tab) {
-  state.currentTab = tab;
-  
-  // Mettre à jour les boutons actifs
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  event.currentTarget.classList.add('active');
-  
-  // Scroll vers la section (simplifié pour mobile)
-  const sections = {
-    signal: 0,
-    market: 1,
-    auto: 2,
-    history: 3,
-    news: 4
-  };
-  
-  const cards = document.querySelectorAll('.card, .signal-main, .market-live, .auto-controls');
-  if (cards[sections[tab]]) {
-    cards[sections[tab]].scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-}
-
-function updateSignalDisplay() {
-  const lastSignal = JSON.parse(localStorage.getItem("lastSignal"));
-  
-  if (lastSignal) {
-    // Mettre à jour avec le signal existant
-    document.getElementById('signal-action').textContent = lastSignal.action;
-    document.getElementById('signal-action').className = `signal-action signal-${lastSignal.action.toLowerCase()}`;
-    document.getElementById('risk-value').textContent = lastSignal.risk;
-    document.getElementById('time-value').textContent = lastSignal.time;
-    document.getElementById('signal-reason').textContent = lastSignal.reason || 'Signal manuel';
     
-    // Mettre à jour le style du conteneur
-    const mainSignal = document.getElementById('signal-main');
-    mainSignal.style.borderColor = lastSignal.action === 'CALL' ? '#28a745' : 
-                                  lastSignal.action === 'PUT' ? '#dc3545' : '#ffc107';
-  } else {
-    // Afficher le dernier signal auto généré
-    const lastAutoSignal = JSON.parse(localStorage.getItem("lastAutoSignal"));
-    if (lastAutoSignal) {
-      document.getElementById('signal-action').textContent = lastAutoSignal.action;
-      document.getElementById('signal-action').className = `signal-action signal-${lastAutoSignal.action.toLowerCase()}`;
-      document.getElementById('risk-value').textContent = lastAutoSignal.risk;
-      document.getElementById('time-value').textContent = lastAutoSignal.time;
-      document.getElementById('signal-reason').textContent = lastAutoSignal.reason || 'Signal auto';
-    }
-  }
-}
-
-function renderHistory() {
-  const tbody = document.getElementById('history-body');
-  tbody.innerHTML = '';
-  
-  const recentHistory = state.history.slice(0, 10);
-  
-  recentHistory.forEach(signal => {
-    const row = document.createElement('tr');
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
     
-    // Formater l'heure
-    const time = signal.time.split(':').slice(0, 2).join(':');
-    
-    // Badge de signal
-    const signalClass = `badge-${signal.action.toLowerCase()}`;
-    
-    // Badge de risque
-    const riskClass = `risk-${signal.risk.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`;
-    
-    // Source
-    const source = signal.source === 'admin' ? '👨‍💼' : '🤖';
-    
-    row.innerHTML = `
-      <td style="font-size: 12px; color: #aaa;">${time}</td>
-      <td><span class="signal-badge ${signalClass}">${signal.action}</span></td>
-      <td><span class="badge-risk ${riskClass}">${signal.risk}</span></td>
-      <td style="text-align: center;">${source}</td>
-    `;
-    
-    tbody.appendChild(row);
-  });
-  
-  // Mettre à jour le compteur
-  document.getElementById('signal-count').textContent = `${state.history.length} signaux`;
-}
-
-function updateMarketDisplay() {
-  // Simuler des données marché pour la démo
-  const price = 1.08250 + (Math.random() - 0.5) * 0.002;
-  const change = price - 1.08250;
-  const percent = (change / 1.08250) * 100;
-  
-  const priceClass = change >= 0 ? 'price-up' : 'price-down';
-  const trend = change >= CONFIG.TREND_THRESHOLD ? 'HAUSSIER' : 
-                change <= -CONFIG.TREND_THRESHOLD ? 'BAISSIER' : 'NEUTRE';
-  const trendClass = change >= 0 ? 'status-active' : 'status-paused';
-  
-  document.getElementById('current-price').textContent = price.toFixed(5);
-  document.getElementById('current-price').className = `current-price ${priceClass}`;
-  document.getElementById('price-change').textContent = `${change >= 0 ? '+' : ''}${change.toFixed(5)} (${percent.toFixed(2)}%)`;
-  document.getElementById('market-trend').textContent = trend;
-  document.getElementById('market-trend').className = `auto-status ${trendClass}`;
-  
-  // Stocker pour analyse
-  state.marketData = { price, change, percent, trend };
-  state.priceHistory.push({ price, time: Date.now() });
-  
-  // Garder seulement 50 prix
-  if (state.priceHistory.length > 50) {
-    state.priceHistory.shift();
-  }
-}
-
-// ====== SIGNAL AUTOMATIQUE ======
-function startAutoSignal() {
-  if (state.autoSignalActive) return;
-  
-  state.autoSignalActive = true;
-  
-  // Mettre à jour l'affichage
-  document.getElementById('auto-status').textContent = 'ACTIVE';
-  document.getElementById('auto-status').className = 'auto-status status-active';
-  
-  // Générer le premier signal immédiatement
-  generateAutoSignal();
-  
-  // Démarrer l'intervalle
-  state.autoSignalTimer = setInterval(generateAutoSignal, CONFIG.AUTO_INTERVAL);
-  
-  // Mettre à jour le timer d'affichage
-  updateNextAnalysisTime();
-  
-  showNotification('🤖 Signal auto ACTIVÉ', 'success');
-}
-
-function stopAutoSignal() {
-  if (!state.autoSignalActive) return;
-  
-  state.autoSignalActive = false;
-  
-  // Mettre à jour l'affichage
-  document.getElementById('auto-status').textContent = 'PAUSED';
-  document.getElementById('auto-status').className = 'auto-status status-paused';
-  
-  // Arrêter l'intervalle
-  if (state.autoSignalTimer) {
-    clearInterval(state.autoSignalTimer);
-    state.autoSignalTimer = null;
-  }
-  
-  showNotification('⏳ Signal auto PAUSÉ', 'warning');
-}
-
-function generateAutoSignal() {
-  if (!state.autoSignalActive || !state.marketData) return;
-  
-  // Analyser la tendance
-  const { price, change, percent, trend } = state.marketData;
-  
-  let action, risk, reason;
-  
-  if (trend === 'HAUSSIER' && Math.abs(percent) >= CONFIG.TREND_THRESHOLD) {
-    action = 'CALL';
-    risk = percent >= 0.1 ? 'FAIBLE' : 'MOYEN';
-    reason = `🤖 Auto: Tendance haussière (${percent.toFixed(2)}%)`;
-  } else if (trend === 'BAISSIER' && Math.abs(percent) >= CONFIG.TREND_THRESHOLD) {
-    action = 'PUT';
-    risk = percent <= -0.1 ? 'FAIBLE' : 'MOYEN';
-    reason = `🤖 Auto: Tendance baissière (${percent.toFixed(2)}%)`;
-  } else {
-    action = 'ATTENDRE';
-    risk = 'ÉLEVÉ';
-    reason = '🤖 Auto: Marché neutre, attente';
-  }
-  
-  // Créer le signal
-  const signal = {
-    time: new Date().toLocaleTimeString(),
-    action,
-    risk,
-    pair: "EUR/USD",
-    reason,
-    type: "auto_index",
-    price,
-    source: "auto"
-  };
-  
-  // Ajouter à l'historique
-  state.history.unshift(signal);
-  
-  // Limiter à 100 signaux
-  if (state.history.length > 100) {
-    state.history = state.history.slice(0, 100);
-  }
-  
-  // Sauvegarder
-  localStorage.setItem("signalHistory", JSON.stringify(state.history));
-  localStorage.setItem("lastAutoSignal", JSON.stringify(signal));
-  localStorage.setItem("lastUpdate", Date.now());
-  
-  // Mettre à jour l'affichage
-  updateSignalDisplay();
-  renderHistory();
-  
-  // Notification
-  showNotification(`🔄 Nouveau signal auto: ${action}`, 'info');
-  
-  // Mettre à jour le prochain timer
-  updateNextAnalysisTime();
-  
-  // Vibration
-  if (navigator.vibrate) {
-    navigator.vibrate([100, 50, 100]);
-  }
-}
-
-function updateNextAnalysisTime() {
-  if (!state.autoSignalActive) {
-    document.getElementById('next-analysis').textContent = '--:--';
-    return;
-  }
-  
-  const nextTime = new Date(Date.now() + CONFIG.AUTO_INTERVAL);
-  document.getElementById('next-analysis').textContent = nextTime.toLocaleTimeString().slice(0, 5);
-}
-
-// ====== RÉGLAGES ======
-function showAutoSettings() {
-  document.getElementById('settings-modal').style.display = 'flex';
-}
-
-function hideSettings() {
-  document.getElementById('settings-modal').style.display = 'none';
-}
-
-function saveAutoSettings() {
-  const interval = parseInt(document.getElementById('auto-interval').value);
-  const threshold = parseFloat(document.getElementById('trend-threshold').value);
-  
-  CONFIG.AUTO_INTERVAL = interval * 1000;
-  CONFIG.TREND_THRESHOLD = threshold;
-  
-  // Sauvegarder
-  localStorage.setItem('autoInterval', CONFIG.AUTO_INTERVAL);
-  localStorage.setItem('trendThreshold', CONFIG.TREND_THRESHOLD);
-  
-  // Redémarrer le timer si actif
-  if (state.autoSignalActive) {
-    stopAutoSignal();
-    startAutoSignal();
-  }
-  
-  hideSettings();
-  showNotification('⚙️ Réglages sauvegardés', 'success');
-}
-
-// ====== VÉRIFICATION DES MISES À JOUR ======
-function checkForUpdates() {
-  const currentLastUpdate = localStorage.getItem("lastUpdate");
-  
-  if (currentLastUpdate && currentLastUpdate !== state.lastUpdate) {
-    state.lastUpdate = currentLastUpdate;
-    
-    // Recharger l'historique
-    state.history = JSON.parse(localStorage.getItem("signalHistory")) || [];
-    
-    // Vérifier si c'est un signal admin
-    const signalSource = localStorage.getItem("signalSource");
-    if (signalSource === 'admin') {
-      // C'est un signal de l'admin, mettre à jour l'affichage
-      updateSignalDisplay();
-      renderHistory();
-      showNotification('👨‍💼 Nouveau signal admin reçu!', 'warning');
-      
-      // Effacer la source pour éviter les répétitions
-      localStorage.removeItem("signalSource");
-    }
-  }
-  
-  // Vérifier les news
-  const newsUpdate = localStorage.getItem("newsUpdate");
-  if (newsUpdate) {
-    const news = localStorage.getItem("newsContent");
-    if (news) {
-      document.getElementById('news-content').textContent = news;
-      const time = new Date(parseInt(newsUpdate)).toLocaleTimeString();
-      document.getElementById('news-time').textContent = `Mis à jour: ${time}`;
-    }
-  }
-}
-
-// ====== INITIALISATION ======
-document.addEventListener('DOMContentLoaded', function() {
-  // Charger l'historique
-  state.history = JSON.parse(localStorage.getItem("signalHistory")) || [];
-  
-  // Initialiser l'affichage
-  updateSignalDisplay();
-  updateMarketDisplay();
-  renderHistory();
-  
-  // Charger les news
-  const news = localStorage.getItem("newsContent");
-  if (news) {
-    document.getElementById('news-content').textContent = news;
-  }
-  
-  // Mettre à jour le marché toutes les 10 secondes
-  setInterval(updateMarketDisplay, 10000);
-  
-  // Vérifier les mises à jour toutes les 3 secondes
-  setInterval(checkForUpdates, 3000);
-  
-  // Démarrer le signal auto si configuré
-  const autoStart = localStorage.getItem('autoStart') === 'true';
-  if (autoStart) {
-    setTimeout(() => startAutoSignal(), 2000);
-  }
-  
-  // Configuration tactile pour mobile
-  document.addEventListener('touchstart', function() {}, { passive: true });
-});
-
-// ====== SERVICE WORKER POUR PUSH ======
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(console.error);
-}
-
-// ====== GESTION HORS LIGNE ======
-window.addEventListener('online', function() {
-  showNotification('🌐 Connecté', 'success');
-});
-
-window.addEventListener('offline', function() {
-  showNotification('📶 Hors ligne - Mode local', 'warning');
-});
-
-</script>
-
+    <!-- Script principal -->
+    <script>
+        // Configuration Netlify
+        const NETLIFY_MODE = true;
+        const AUTO_SIGNAL_INTERVAL = 60000; // 1 minute
+        const MARKET_ANALYSIS_INTERVAL = 30000; // 30 secondes
+        
+        // État de l'application
+        let state = {
+            signalHistory: JSON.parse(localStorage.getItem("signalHistory")) || [],
+            lastSignal: JSON.parse(localStorage.getItem("lastSignal")) || null,
+            newsContent: localStorage.getItem("newsContent") || "",
+            autoSignalEnabled: true,
+            autoSignalTimer: null,
+            marketAnalysisTimer: null,
+            lastUpdate: localStorage.getItem("lastUpdate") || 0,
+            appStats: JSON.parse(localStorage.getItem("appStats")) || {
+                totalSignals: 0,
+                successfulCalls: 0,
+                successfulPuts: 0,
+                todaySignals: 0,
+                lastReset: new Date().toDateString()
+            }
+        };
+        
+        // Classes pour les signaux
+        const SIGNAL_CLASSES = {
+            'CALL': 'signal-call',
+            'PUT': 'signal-put',
+            'ATTENDRE': 'signal-wait'
+        };
+        
+        // Éléments DOM
+        const DOM = {
+            signalAction: document.getElementById('signal-action'),
+            signalPair: document.getElementById('signal-pair'),
+            signalRisk: document.getElementById('signal-risk'),
+            signalTime: document.getElementById('signal-time'),
+            signalSource: document.getElementById('signal-source'),
+            mainSignal: document.getElementById('main-signal'),
+            historyList: document.getElementById('history-list'),
+            historyCount: document.getElementById('history-count'),
+            newsContent: document.getElementById('news-content'),
+            newsTime: document.getElementById('news-time'),
+            lastUpdate: document.getElementById('last-update'),
+            autoToggle: document.getElementById('auto-toggle'),
+            toast: document.getElementById('toast'),
+            
+            // Statistiques
+            todaySignals: document.getElementById('today-signals'),
+            accuracyRate: document.getElementById('accuracy-rate'),
+            successCalls: document.getElementById('success-calls'),
+            successPuts: document.getElementById('success-puts')
+        };
+        
+        // Initialisation
+        function init() {
+            setupEventListeners();
+            loadInitialData();
+            updateDisplay();
+            startAutoSignal();
+            startMarketAnalysis();
+            
+            // Vérifier les mises à jour régulièrement
+            setInterval(checkForUpdates, 2000);
+            
+            // PWA: Demander l'installation
+            if ('serviceWorker' in navigator && NETLIFY_MODE) {
+                navigator.serviceWorker.register('/sw.js').catch(console.error);
+            }
+        }
+        
+        // Configurer les événements
+        function setupEventListeners() {
+            // Toggle Auto Signal
+            DOM.autoToggle.addEventListener('change', toggleAutoSignal);
+            
+            // Bouton refresh
+            document.getElementById('refresh-btn').addEventListener('click', refreshData);
+            document.getElementById('refresh-stats').addEventListener('click', refreshData);
+            
+            // Boutons de navigation
+            document.getElementById('stats-btn').addEventListener('click', showStatsModal);
+            document.getElementById('settings-btn').addEventListener('click', showSettingsModal);
+            
+            // PWA: Installation
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                // Stocker l'événement pour plus tard
+                window.deferredPrompt = e;
+            });
+            
+            // Rafraîchissement pull-to-refresh
+            let touchStartY = 0;
+            window.addEventListener('touchstart', (e) => {
+                touchStartY = e.touches[0].clientY;
+            });
+            
+            window.addEventListener('touchmove', (e) => {
+                const touchY = e.touches[0].clientY;
+                const diff = touchStartY - touchY;
+                
+                if (diff > 50 && window.scrollY === 0) {
+                    refreshData();
+                }
+            });
+        }
+        
+        // Charger les données initiales
+        function loadInitialData() {
+            // Vérifier si besoin de réinitialiser les stats quotidiennes
+            const today = new Date().toDateString();
+            if (state.appStats.lastReset !== today) {
+                state.appStats.todaySignals = 0;
+                state.appStats.lastReset = today;
+                saveAppStats();
+            }
+            
+            // Charger le dernier signal
+            if (state.lastSignal) {
+                updateMainSignal(state.lastSignal);
+            }
+            
+            // Charger les news
+            if (state.newsContent) {
+                DOM.newsContent.textContent = state.newsContent;
+                const lastNews = JSON.parse(localStorage.getItem("lastNews"));
+                if (lastNews) {
+                    DOM.newsTime.textContent = lastNews.time;
+                }
+            }
+            
+            // Mettre à jour les statistiques
+            updateStats();
+        }
+        
+        // Mettre à jour l'affichage
+        function updateDisplay() {
+            // Mettre à jour l'historique
+            renderHistory();
+            
+            // Mettre à jour le dernier refresh
+            DOM.lastUpdate.textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            // Mettre à jour le compteur
+            DOM.historyCount.textContent = `${state.signalHistory.length} signaux`;
+        }
+        
+        // Mettre à jour le signal principal
+        function updateMainSignal(signal) {
+            DOM.signalAction.textContent = signal.action;
+            DOM.signalAction.className = `signal-action ${SIGNAL_CLASSES[signal.action]}`;
+            DOM.signalPair.textContent = signal.pair || 'EUR/USD';
+            DOM.signalRisk.textContent = signal.risk || 'MOYEN';
+            DOM.signalTime.textContent = signal.time || '--:--';
+            DOM.signalSource.textContent = signal.source === 'admin_manual' ? 'Admin' : 'Auto';
+            
+            // Mettre à jour la couleur de la carte principale
+            DOM.mainSignal.classList.remove('signal-call', 'signal-put', 'signal-wait');
+            DOM.mainSignal.classList.add(SIGNAL_CLASSES[signal.action].replace('signal-', ''));
+        }
+        
+        // Rendre l'historique
+        function renderHistory() {
+            const historyList = DOM.historyList;
+            historyList.innerHTML = '';
+            
+            // Prendre les 10 derniers signaux
+            const recentSignals = state.signalHistory.slice(0, 10);
+            
+            if (recentSignals.length === 0) {
+                historyList.innerHTML = `
+                    <div class="history-item wait">
+                        <div class="history-time">--:--</div>
+                        <div class="history-action">Aucun signal</div>
+                        <div class="history-risk">--</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            recentSignals.forEach(signal => {
+                const item = document.createElement('div');
+                item.className = `history-item ${signal.action.toLowerCase()} fade-in`;
+                item.innerHTML = `
+                    <div class="history-time">${signal.time}</div>
+                    <div class="history-action">${signal.action}</div>
+                    <div class="history-risk">${signal.risk}</div>
+                `;
+                
+                // Ajouter un événement de clic pour voir les détails
+                item.addEventListener('click', () => showSignalDetails(signal));
+                
+                historyList.appendChild(item);
+            });
+        }
+        
+        // Mettre à jour les statistiques
+        function updateStats() {
+            // Statistiques du jour
+            DOM.todaySignals.textContent = state.appStats.todaySignals;
+            
+            // Calcul de la précision
+            const totalSignals = state.appStats.totalSignals;
+            const successfulSignals = state.appStats.successfulCalls + state.appStats.successfulPuts;
+            const accuracy = totalSignals > 0 ? Math.round((successfulSignals / totalSignals) * 100) : 0;
+            DOM.accuracyRate.textContent = `${accuracy}%`;
+            
+            // Signaux réussis
+            DOM.successCalls.textContent = state.appStats.successfulCalls;
+            DOM.successPuts.textContent = state.appStats.successfulPuts;
+        }
+        
+        // Activer/désactiver le signal auto
+        function toggleAutoSignal() {
+            state.autoSignalEnabled = DOM.autoToggle.checked;
+            
+            if (state.autoSignalEnabled) {
+                startAutoSignal();
+                showToast('Signal auto ACTIVÉ', 'success');
+            } else {
+                stopAutoSignal();
+                showToast('Signal auto DÉSACTIVÉ', 'warning');
+            }
+        }
+        
+        // Démarrer le signal auto
+        function startAutoSignal() {
+            if (!state.autoSignalEnabled) return;
+            
+            // Arrêter le timer existant
+            if (state.autoSignalTimer) {
+                clearInterval(state.autoSignalTimer);
+            }
+            
+            // Démarrer un nouveau timer
+            state.autoSignalTimer = setInterval(generateAutoSignal, AUTO_SIGNAL_INTERVAL);
+            
+            // Générer un signal immédiatement
+            setTimeout(generateAutoSignal, 1000);
+        }
+        
+        // Arrêter le signal auto
+        function stopAutoSignal() {
+            if (state.autoSignalTimer) {
+                clearInterval(state.autoSignalTimer);
+                state.autoSignalTimer = null;
+            }
+        }
+        
+        // Générer un signal automatique
+        function generateAutoSignal() {
+            if (!state.autoSignalEnabled) return;
+            
+            // Logique de génération de signal
+            const marketCondition = analyzeMarketCondition();
+            const signal = createSignalFromAnalysis(marketCondition);
+            
+            // Ajouter à l'historique
+            addSignalToHistory(signal);
+            
+            // Mettre à jour l'affichage
+            updateMainSignal(signal);
+            renderHistory();
+            updateStats();
+            
+            // Notification
+            showToast(`Signal auto: ${signal.action}`, 'success');
+            
+            // Animation
+            DOM.signalAction.classList.add('pulse-animation');
+            setTimeout(() => {
+                DOM.signalAction.classList.remove('pulse-animation');
+            }, 500);
+        }
+        
+        // Analyser la condition du marché
+        function analyzeMarketCondition() {
+            // Simulation d'analyse de marché
+            // Dans une vraie application, on utiliserait une API de trading
+            const conditions = ['trend_up', 'trend_down', 'range', 'volatile'];
+            const randomCondition = conditions[Math.floor(Math.random() * conditions.length)];
+            
+            // Simulation de force de tendance
+            const strength = Math.random() > 0.7 ? 'strong' : 'normal';
+            
+            return {
+                condition: randomCondition,
+                strength: strength,
+                confidence: Math.floor(Math.random() * 30) + 70, // 70-100%
+                timestamp: Date.now()
+            };
+        }
+        
+        // Créer un signal à partir de l'analyse
+        function createSignalFromAnalysis(analysis) {
+            let action, risk, reason;
+            
+            switch(analysis.condition) {
+                case 'trend_up':
+                    action = 'CALL';
+                    risk = analysis.strength === 'strong' ? 'FAIBLE' : 'MOYEN';
+                    reason = `Tendance haussière (${analysis.confidence}%)`;
+                    break;
+                case 'trend_down':
+                    action = 'PUT';
+                    risk = analysis.strength === 'strong' ? 'FAIBLE' : 'MOYEN';
+                    reason = `Tendance baissière (${analysis.confidence}%)`;
+                    break;
+                case 'range':
+                    action = 'ATTENDRE';
+                    risk = 'ÉLEVÉ';
+                    reason = `Marché en range (${analysis.confidence}%)`;
+                    break;
+                case 'volatile':
+                    action = 'ATTENDRE';
+                    risk = 'ÉLEVÉ';
+                    reason = `Marché volatile (${analysis.confidence}%)`;
+                    break;
+                default:
+                    action = 'ATTENDRE';
+                    risk = 'MOYEN';
+                    reason = 'Analyse en cours';
+            }
+            
+            return {
+                time: new Date().toLocaleTimeString(),
+                date: new Date().toLocaleDateString('fr-FR'),
+                action: action,
+                risk: risk,
+                pair: 'EUR/USD',
+                source: 'auto_index',
+                reason: reason,
+                id: Date.now(),
+                analysis: analysis
+            };
+        }
+        
+        // Ajouter un signal à l'historique
+        function addSignalToHistory(signal) {
+            // Ajouter au début de l'historique
+            state.signalHistory.unshift(signal);
+            
+            // Limiter à 100 signaux
+            if (state.signalHistory.length > 100) {
+                state.signalHistory = state.signalHistory.slice(0, 100);
+            }
+            
+            // Mettre à jour le dernier signal
+            state.lastSignal = signal;
+            
+            // Mettre à jour les statistiques
+            state.appStats.totalSignals++;
+            state.appStats.todaySignals++;
+            
+            // Simuler un succès aléatoire
+            if (Math.random() > 0.3) {
+                if (signal.action === 'CALL') state.appStats.successfulCalls++;
+                if (signal.action === 'PUT') state.appStats.successfulPuts++;
+            }
+            
+            // Sauvegarder
+            saveAppState();
+            saveAppStats();
+            
+            // Pour Netlify: synchronisation
+            if (NETLIFY_MODE) {
+                syncWithNetlify(signal);
+            }
+        }
+        
+        // Démarrer l'analyse du marché
+        function startMarketAnalysis() {
+            state.marketAnalysisTimer = setInterval(() => {
+                // Simulation d'analyse de marché
+                console.log('Analyse marché en cours...');
+            }, MARKET_ANALYSIS_INTERVAL);
+        }
+        
+        // Vérifier les mises à jour
+        function checkForUpdates() {
+            const lastUpdate = localStorage.getItem("lastUpdate");
+            const newsUpdate = localStorage.getItem("newsUpdate");
+            
+            // Vérifier les nouveaux signaux
+            if (lastUpdate && parseInt(lastUpdate) > parseInt(state.lastUpdate)) {
+                state.lastUpdate = lastUpdate;
+                const newSignal = JSON.parse(localStorage.getItem("lastSignal"));
+                
+                if (newSignal && newSignal.id !== state.lastSignal?.id) {
+                    // Signal de l'admin détecté
+                    addSignalToHistory(newSignal);
+                    updateMainSignal(newSignal);
+                    renderHistory();
+                    showToast(`Nouveau signal admin: ${newSignal.action}`, 'warning');
+                }
+            }
+            
+            // Vérifier les nouvelles news
+            if (newsUpdate) {
+                const newsContent = localStorage.getItem("newsContent");
+                if (newsContent && newsContent !== state.newsContent) {
+                    state.newsContent = newsContent;
+                    DOM.newsContent.textContent = newsContent;
+                    
+                    const lastNews = JSON.parse(localStorage.getItem("lastNews"));
+                    if (lastNews) {
+                        DOM.newsTime.textContent = lastNews.time;
+                    }
+                    
+                    showToast('Nouvelles news disponibles', 'success');
+                }
+            }
+        }
+        
+        // Rafraîchir les données
+        function refreshData() {
+            // Recharger depuis localStorage
+            state.signalHistory = JSON.parse(localStorage.getItem("signalHistory")) || [];
+            state.lastSignal = JSON.parse(localStorage.getItem("lastSignal"));
+            state.newsContent = localStorage.getItem("newsContent") || "";
+            
+            // Mettre à jour l'affichage
+            updateDisplay();
+            
+            if (state.lastSignal) {
+                updateMainSignal(state.lastSignal);
+            }
+            
+            // Notification
+            showToast('Données actualisées', 'success');
+            
+            // Animation
+            DOM.mainSignal.classList.add('pulse-animation');
+            setTimeout(() => {
+                DOM.mainSignal.classList.remove('pulse-animation');
+            }, 500);
+        }
+        
+        // Afficher les détails d'un signal
+        function showSignalDetails(signal) {
+            const details = `
+                Signal: ${signal.action}
+                Paire: ${signal.pair}
+                Risque: ${signal.risk}
+                Heure: ${signal.time}
+                Source: ${signal.source === 'admin_manual' ? 'Admin' : 'Auto'}
+                ${signal.reason ? `Raison: ${signal.reason}` : ''}
+            `;
+            
+            if (window.confirm(details + "\n\nVoulez-vous copier ces détails?")) {
+                navigator.clipboard.writeText(details);
+                showToast('Détails copiés', 'success');
+            }
+        }
+        
+        // Afficher une notification toast
+        function showToast(message, type = 'info') {
+            const toast = DOM.toast;
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Sauvegarder l'état de l'app
+        function saveAppState() {
+            localStorage.setItem("signalHistory", JSON.stringify(state.signalHistory));
+            localStorage.setItem("lastSignal", JSON.stringify(state.lastSignal));
+            localStorage.setItem("lastUpdate", Date.now().toString());
+        }
+        
+        // Sauvegarder les statistiques
+        function saveAppStats() {
+            localStorage.setItem("appStats", JSON.stringify(state.appStats));
+        }
+        
+        // Synchronisation Netlify
+        function syncWithNetlify(signal) {
+            if (!NETLIFY_MODE) return;
+            
+            // Simulation de l'envoi à Netlify Functions
+            console.log('Netlify Sync:', signal);
+            
+            // Dans une vraie implémentation:
+            // fetch('/.netlify/functions/save-signal', {
+            //     method: 'POST',
+            //     headers: {'Content-Type': 'application/json'},
+            //     body: JSON.stringify(signal)
+            // });
+        }
+        
+        // Modal de statistiques
+        function showStatsModal() {
+            const stats = `
+                Total signaux: ${state.appStats.totalSignals}
+                Signaux aujourd'hui: ${state.appStats.todaySignals}
+                CALLs réussis: ${state.appStats.successfulCalls}
+                PUTs réussis: ${state.appStats.successfulPuts}
+                Précision: ${state.appStats.totalSignals > 0 ? 
+                    Math.round(((state.appStats.successfulCalls + state.appStats.successfulPuts) / state.appStats.totalSignals) * 100) : 0}%
+            `;
+            
+            alert(`📊 Statistiques Typh:\n\n${stats}`);
+        }
+        
+        // Modal de réglages
+        function showSettingsModal() {
+            const settings = `
+                1. Intervalle auto: ${AUTO_SIGNAL_INTERVAL/1000}s
+                2. Mode Netlify: ${NETLIFY_MODE ? 'Activé' : 'Désactivé'}
+                3. Signal auto: ${state.autoSignalEnabled ? 'Activé' : 'Désactivé'}
+                4. Historique: ${state.signalHistory.length} signaux
+            `;
+            
+            const action = prompt(`⚙️ Réglages:\n\n${settings}\n\nEntrez "reset" pour réinitialiser:`);
+            
+            if (action === 'reset') {
+                if (confirm('Voulez-vous vraiment tout réinitialiser?')) {
+                    localStorage.clear();
+                    location.reload();
+                }
+            }
+        }
+        
+        // Démarrer l'application
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 </html>
