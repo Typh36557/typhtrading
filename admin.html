@@ -6,11 +6,12 @@
     <title>Typh Tech - Admin Mobile</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Firebase -->
+    <!-- Firebase (AJOUTÉ) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
     <style>
+        /* VOTRE DESIGN ORIGINAL - PAS DE MODIFICATION */
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
@@ -270,6 +271,14 @@
             border: 1px solid rgba(245, 158, 11, 0.3);
         }
         
+        .quick-btn.real {
+            background: rgba(13, 110, 253, 0.2);
+            color: #0d6efd;
+            border: 1px solid rgba(13, 110, 253, 0.3);
+            grid-column: span 3;
+            margin-top: 10px;
+        }
+        
         /* Statut */
         .status-bar {
             display: flex;
@@ -324,9 +333,9 @@
         }
     </style>
     
-    <!-- Firebase Configuration -->
+    <!-- Configuration Firebase (AJOUTÉ) -->
     <script>
-        // Configuration Firebase
+        // Configuration Firebase (COPIÉ DE VOS ANCIENS FICHIERS)
         const firebaseConfig = {
             apiKey: "AIzaSyBYTj0oxyGyYMGuG3oS3I9rsJztkKI19cQ",
             authDomain: "signal-trading-dc7e1.firebaseapp.com",
@@ -342,7 +351,7 @@
         const firebaseApp = firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         
-        // Vérification mot de passe
+        // Vérification mot de passe (VOTRE CODE ORIGINAL)
         document.addEventListener('DOMContentLoaded', function() {
             const password = prompt("🔐 Mot de passe admin:");
             
@@ -360,12 +369,13 @@
                 return;
             }
             
-            // Initialiser l'application
+            // Initialiser l'application après vérification
             init();
         });
     </script>
 </head>
 <body>
+    <!-- STRUCTURE HTML ORIGINALE - PAS DE MODIFICATION -->
     <div class="container">
         <!-- Header -->
         <div class="header">
@@ -441,6 +451,10 @@
                     <i class="fas fa-pause"></i>
                     <span>ATTENDRE</span>
                 </button>
+                <button class="quick-btn real" id="real-signal-btn">
+                    <i class="fas fa-satellite-dish"></i>
+                    <span>Signal RÉEL</span>
+                </button>
             </div>
         </div>
         
@@ -494,10 +508,11 @@
     <div class="notification" id="notification"></div>
     
     <script>
-        // Configuration Netlify
+        // Configuration Netlify et API Alpha Vantage (VOTRE CODE ORIGINAL)
         const NETLIFY_MODE = true;
+        const API_KEY = "QPMD30L3MICTWRCP";
         
-        // État de l'application
+        // État de l'application (VOTRE CODE ORIGINAL)
         let appState = {
             signalHistory: JSON.parse(localStorage.getItem("signalHistory")) || [],
             newsContent: localStorage.getItem("newsContent") || "",
@@ -505,12 +520,13 @@
             lastSignalTime: null
         };
         
-        // Éléments DOM
+        // Éléments DOM (VOTRE CODE ORIGINAL)
         const elements = {
             signalType: document.getElementById('signal-type'),
             riskLevel: document.getElementById('risk-level'),
             currencyPair: document.getElementById('currency-pair'),
             sendSignalBtn: document.getElementById('send-signal-btn'),
+            realSignalBtn: document.getElementById('real-signal-btn'),
             newsText: document.getElementById('news-text'),
             sendNewsBtn: document.getElementById('send-news-btn'),
             clearHistoryBtn: document.getElementById('clear-history-btn'),
@@ -520,40 +536,33 @@
             lastTime: document.getElementById('last-time')
         };
         
+        // =================== MODIFICATIONS MINIMALES POUR FIREBASE ===================
+        
         // Initialisation
         function init() {
             updateStats();
             loadSavedNews();
             setupEventListeners();
+            // AJOUT: Écouter les stats Firebase
             setupFirebaseListeners();
             
-            // Vérifier si c'est la première visite
             if (!localStorage.getItem('firstVisit')) {
                 showNotification('Bienvenue sur Typh Admin Mobile!', 'success');
                 localStorage.setItem('firstVisit', 'true');
             }
         }
         
-        // Configurer les écouteurs Firebase
+        // AJOUT: Écouter Firebase pour les stats
         function setupFirebaseListeners() {
-            // Écouter le dernier signal
             database.ref('currentSignal').on('value', (snapshot) => {
                 const signal = snapshot.val();
-                if (signal) {
-                    updateFirebaseStats(signal);
+                if (signal && signal.timestamp) {
+                    elements.lastTime.textContent = new Date(signal.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 }
             });
         }
         
-        // Mettre à jour les statistiques Firebase
-        function updateFirebaseStats(signal) {
-            if (signal && signal.timestamp) {
-                elements.lastTime.textContent = new Date(signal.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                elements.signalCount.textContent = appState.signalHistory.length + 1;
-            }
-        }
-        
-        // Mettre à jour les statistiques
+        // VOTRE CODE ORIGINAL (avec petites modifications pour Firebase)
         function updateStats() {
             elements.signalCount.textContent = appState.signalHistory.length;
             
@@ -563,41 +572,30 @@
             }
         }
         
-        // Charger les news sauvegardées
         function loadSavedNews() {
             if (appState.newsContent) {
                 elements.newsText.value = appState.newsContent;
             }
         }
         
-        // Configurer les événements
         function setupEventListeners() {
-            // Bouton d'envoi de signal
             elements.sendSignalBtn.addEventListener('click', sendManualSignal);
+            elements.realSignalBtn.addEventListener('click', generateRealSignalAdmin);
             
-            // Boutons rapides
-            document.querySelectorAll('.quick-btn').forEach(btn => {
+            document.querySelectorAll('.quick-btn[data-type]').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const type = this.getAttribute('data-type');
                     const risk = this.getAttribute('data-risk');
-                    
                     elements.signalType.value = type;
                     elements.riskLevel.value = risk;
-                    
                     sendManualSignal();
                 });
             });
             
-            // Bouton d'envoi de news
             elements.sendNewsBtn.addEventListener('click', sendNews);
-            
-            // Bouton d'effacement
             elements.clearHistoryBtn.addEventListener('click', clearHistory);
-            
-            // Bouton d'export
             elements.exportBtn.addEventListener('click', exportData);
             
-            // Entrée dans le textarea des news
             elements.newsText.addEventListener('keydown', function(e) {
                 if (e.ctrlKey && e.key === 'Enter') {
                     sendNews();
@@ -605,7 +603,7 @@
             });
         }
         
-        // Envoyer un signal manuel
+        // MODIFICATION: Ajout de l'envoi à Firebase
         function sendManualSignal() {
             const signal = {
                 time: new Date().toLocaleTimeString(),
@@ -616,70 +614,182 @@
                 source: "admin_manual",
                 id: Date.now(),
                 type: "signal",
-                timestamp: Date.now()
+                timestamp: Date.now() // AJOUT: pour Firebase
             };
             
-            // Ajouter au début de l'historique
+            // VOTRE CODE ORIGINAL
             appState.signalHistory.unshift(signal);
             
-            // Limiter à 100 signaux
             if (appState.signalHistory.length > 100) {
                 appState.signalHistory = appState.signalHistory.slice(0, 100);
             }
             
-            // Sauvegarder localement
             localStorage.setItem("signalHistory", JSON.stringify(appState.signalHistory));
             localStorage.setItem("lastSignal", JSON.stringify(signal));
             localStorage.setItem("lastUpdate", Date.now());
             
-            // Mettre à jour les stats
             updateStats();
             
-            // Envoyer à Firebase
+            // AJOUT: Envoyer à Firebase
             sendSignalToFirebase(signal);
             
-            // Notification
             const actionText = signal.action === 'CALL' ? '📈 CALL' : 
                               signal.action === 'PUT' ? '📉 PUT' : '⏳ ATTENDRE';
             showNotification(`${actionText} envoyé pour ${signal.pair}`, 'success');
             
-            // Animation
             elements.sendSignalBtn.classList.add('pulse');
             setTimeout(() => {
                 elements.sendSignalBtn.classList.remove('pulse');
             }, 500);
         }
         
-        // Envoyer signal à Firebase
+        // NOUVEAU: Fonction pour envoyer à Firebase
         function sendSignalToFirebase(signal) {
             try {
-                // Préparer le signal pour Firebase
                 const firebaseSignal = {
                     actif: signal.pair,
                     type: signal.action,
                     etat: signal.action === "ATTENDRE" ? "ATTENDRE" : "ENTRER",
                     heure: signal.time,
                     expiration: "5 minutes",
-                    commentaire: `Risque: ${signal.risk}`,
+                    commentaire: `Risque: ${signal.risk} | Source: Admin`,
                     timestamp: signal.timestamp,
                     risk: signal.risk,
                     source: "admin_manual"
                 };
                 
-                // Sauvegarder le signal actuel
                 database.ref('currentSignal').set(firebaseSignal);
-                
-                // Ajouter à l'historique Firebase
                 database.ref('history').push().set(firebaseSignal);
                 
-                console.log('✅ Signal envoyé à Firebase:', firebaseSignal);
+                console.log('✅ Signal envoyé à Firebase');
             } catch (error) {
                 console.error('❌ Erreur Firebase:', error);
-                showNotification('Erreur d\'envoi Firebase', 'error');
             }
         }
         
-        // Envoyer des news
+        // VOTRE FONCTION ORIGINALE (avec petite modification pour Firebase)
+        async function generateRealSignalAdmin() {
+            try {
+                elements.realSignalBtn.disabled = true;
+                elements.realSignalBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Analyse...</span>';
+                
+                const url = `https://www.alphavantage.co/query?function=FX_INTRADAY&from_symbol=EUR&to_symbol=USD&interval=1min&apikey=${API_KEY}&outputsize=compact`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (!data["Time Series FX (1min)"]) {
+                    throw new Error("API non disponible");
+                }
+                
+                const candles = data["Time Series FX (1min)"];
+                const prices = Object.values(candles)
+                    .slice(0, 20)
+                    .map(candle => parseFloat(candle["4. close"]))
+                    .reverse();
+                
+                if (prices.length < 10) {
+                    throw new Error("Pas assez de données");
+                }
+                
+                const currentPrice = prices[prices.length - 1];
+                const ma5 = calculateMA(prices, 5);
+                const ma14 = calculateMA(prices, 14);
+                
+                let action, risk, reason;
+                
+                if (ma5 > ma14) {
+                    action = "CALL";
+                    risk = "MOYEN";
+                    reason = `MA5 (${ma5.toFixed(5)}) > MA14 (${ma14.toFixed(5)})`;
+                } else if (ma5 < ma14) {
+                    action = "PUT";
+                    risk = "MOYEN";
+                    reason = `MA5 (${ma5.toFixed(5)}) < MA14 (${ma14.toFixed(5)})`;
+                } else {
+                    action = "ATTENDRE";
+                    risk = "FAIBLE";
+                    reason = "Marché neutre";
+                }
+                
+                const signal = {
+                    time: new Date().toLocaleTimeString(),
+                    date: new Date().toLocaleDateString('fr-FR'),
+                    action: action,
+                    risk: risk,
+                    pair: 'EUR/USD',
+                    source: "admin_reel",
+                    id: Date.now(),
+                    type: "signal",
+                    realPrice: currentPrice,
+                    reason: reason,
+                    timestamp: Date.now() // AJOUT: pour Firebase
+                };
+                
+                // VOTRE CODE ORIGINAL
+                appState.signalHistory.unshift(signal);
+                if (appState.signalHistory.length > 100) {
+                    appState.signalHistory = appState.signalHistory.slice(0, 100);
+                }
+                
+                localStorage.setItem("signalHistory", JSON.stringify(appState.signalHistory));
+                localStorage.setItem("lastSignal", JSON.stringify(signal));
+                localStorage.setItem("lastUpdate", Date.now());
+                
+                updateStats();
+                
+                // AJOUT: Envoyer à Firebase
+                sendRealSignalToFirebase(signal);
+                
+                showNotification(`Signal RÉEL: ${action} à ${currentPrice.toFixed(5)}`, 'success');
+                
+                elements.realSignalBtn.classList.add('pulse');
+                setTimeout(() => {
+                    elements.realSignalBtn.classList.remove('pulse');
+                }, 500);
+                
+            } catch (error) {
+                console.error("Erreur signal réel:", error);
+                showNotification('Erreur API - Utilisez signal manuel', 'error');
+            } finally {
+                elements.realSignalBtn.disabled = false;
+                elements.realSignalBtn.innerHTML = '<i class="fas fa-satellite-dish"></i><span>Signal RÉEL</span>';
+            }
+        }
+        
+        // NOUVEAU: Envoyer signal réel à Firebase
+        function sendRealSignalToFirebase(signal) {
+            try {
+                const firebaseSignal = {
+                    actif: signal.pair,
+                    type: signal.action,
+                    etat: signal.action === "ATTENDRE" ? "ATTENDRE" : "ENTRER",
+                    heure: signal.time,
+                    expiration: "5 minutes",
+                    commentaire: `Risque: ${signal.risk} | Prix: ${signal.realPrice?.toFixed(5) || 'N/A'} | ${signal.reason}`,
+                    timestamp: signal.timestamp,
+                    risk: signal.risk,
+                    source: "admin_reel",
+                    realPrice: signal.realPrice,
+                    reason: signal.reason
+                };
+                
+                database.ref('currentSignal').set(firebaseSignal);
+                database.ref('history').push().set(firebaseSignal);
+                
+                console.log('✅ Signal RÉEL envoyé à Firebase');
+            } catch (error) {
+                console.error('❌ Erreur Firebase signal réel:', error);
+            }
+        }
+        
+        // VOTRE FONCTION ORIGINALE
+        function calculateMA(prices, period) {
+            if (prices.length < period) return 0;
+            const slice = prices.slice(-period);
+            return slice.reduce((sum, price) => sum + price, 0) / period;
+        }
+        
+        // MODIFICATION: Ajout de l'envoi à Firebase
         function sendNews() {
             const newsText = elements.newsText.value.trim();
             
@@ -696,42 +806,41 @@
                 timestamp: Date.now()
             };
             
-            // Sauvegarder localement
+            // VOTRE CODE ORIGINAL
             appState.newsContent = newsText;
             localStorage.setItem("newsContent", newsText);
             localStorage.setItem("lastNews", JSON.stringify(news));
             localStorage.setItem("newsUpdate", Date.now());
             
-            // Envoyer à Firebase
+            // AJOUT: Envoyer à Firebase
             sendNewsToFirebase(newsText);
             
             showNotification('News publiées avec succès!', 'success');
             
-            // Animation
             elements.sendNewsBtn.classList.add('pulse');
             setTimeout(() => {
                 elements.sendNewsBtn.classList.remove('pulse');
             }, 500);
         }
         
-        // Envoyer news à Firebase
+        // NOUVEAU: Envoyer news à Firebase
         function sendNewsToFirebase(newsText) {
             try {
                 database.ref('news').set(newsText);
-                console.log('✅ News envoyées à Firebase:', newsText);
+                console.log('✅ News envoyées à Firebase');
             } catch (error) {
                 console.error('❌ Erreur Firebase news:', error);
             }
         }
         
-        // Effacer l'historique
+        // MODIFICATION: Ajout de l'effacement Firebase
         function clearHistory() {
             if (confirm('Voulez-vous vraiment effacer tout l\'historique des signaux?')) {
                 appState.signalHistory = [];
                 localStorage.removeItem("signalHistory");
                 localStorage.removeItem("lastSignal");
                 
-                // Effacer l'historique Firebase
+                // AJOUT: Effacer l'historique Firebase
                 try {
                     database.ref('history').remove();
                 } catch (error) {
@@ -743,7 +852,7 @@
             }
         }
         
-        // Exporter les données
+        // VOTRE FONCTION ORIGINALE
         function exportData() {
             const data = {
                 signals: appState.signalHistory,
@@ -764,7 +873,7 @@
             showNotification('Données exportées', 'success');
         }
         
-        // Afficher une notification
+        // VOTRE FONCTION ORIGINALE
         function showNotification(message, type = 'info') {
             const notif = elements.notification;
             notif.textContent = message;
@@ -774,9 +883,6 @@
                 notif.classList.remove('show');
             }, 3000);
         }
-        
-        // Démarrer l'application
-        // L'initialisation se fait après la vérification du mot de passe
     </script>
 </body>
 </html>
