@@ -8,12 +8,11 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0d6efd">
     
-    <!-- Firebase (AJOUTÉ) -->
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
     <style>
-        /* VOTRE DESIGN ORIGINAL - PAS DE MODIFICATION */
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
@@ -78,6 +77,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            flex-wrap: wrap;
         }
         
         /* Signal principal */
@@ -109,6 +109,13 @@
             font-size: 1.2rem;
             color: var(--text-secondary);
             margin-bottom: 5px;
+        }
+        
+        .signal-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0d6efd;
+            margin: 5px 0;
         }
         
         .signal-details {
@@ -317,6 +324,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            text-align: center;
+            font-size: 0.95rem;
+            line-height: 1.4;
         }
         
         /* Bottom Navigation */
@@ -394,12 +404,22 @@
             100% { transform: scale(1); }
         }
         
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px rgba(13, 110, 253, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(13, 110, 253, 0.8); }
+            100% { box-shadow: 0 0 5px rgba(13, 110, 253, 0.5); }
+        }
+        
         .fade-in {
             animation: fadeIn 0.3s ease-out;
         }
         
         .pulse-animation {
             animation: pulse 0.5s ease-in-out;
+        }
+        
+        .glow-animation {
+            animation: glow 2s infinite;
         }
         
         /* Responsive */
@@ -423,11 +443,25 @@
             background: #4b5563;
             border-radius: 10px;
         }
+        
+        /* Session Badge */
+        .session-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        
+        .session-asia { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .session-europe { background: rgba(13, 110, 253, 0.2); color: #0d6efd; }
+        .session-usa { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .session-closed { background: rgba(160, 174, 192, 0.2); color: #a0aec0; }
     </style>
     
-    <!-- Configuration Firebase (AJOUTÉ) -->
+    <!-- Configuration Firebase -->
     <script>
-        // Configuration Firebase (COPIÉ DE VOS ANCIENS FICHIERS)
         const firebaseConfig = {
             apiKey: "AIzaSyBYTj0oxyGyYMGuG3oS3I9rsJztkKI19cQ",
             authDomain: "signal-trading-dc7e1.firebaseapp.com",
@@ -439,13 +473,11 @@
             measurementId: "G-MM3GRDYVLX"
         };
         
-        // Initialiser Firebase
         const firebaseApp = firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
     </script>
 </head>
 <body>
-    <!-- STRUCTURE HTML ORIGINALE - PAS DE MODIFICATION -->
     <!-- Header -->
     <div class="app-header">
         <h1><i class="fas fa-chart-line"></i> TYPH SIGNALS</h1>
@@ -453,6 +485,8 @@
             <span id="connection-status"><i class="fas fa-wifi"></i> Connecté</span>
             <span>•</span>
             <span id="last-update">--:--</span>
+            <span>•</span>
+            <span id="market-session" class="session-badge session-europe">🇪🇺 Europe</span>
         </div>
     </div>
     
@@ -460,6 +494,7 @@
         <!-- Signal principal -->
         <div class="main-signal" id="main-signal">
             <div class="signal-pair" id="signal-pair">EUR/USD</div>
+            <div class="signal-price" id="signal-price">--.--</div>
             <div class="signal-action signal-wait" id="signal-action">ATTENDRE</div>
             <div class="signal-details">
                 <div class="detail-item">
@@ -481,7 +516,7 @@
         <div class="auto-toggle">
             <div class="toggle-label">
                 <i class="fas fa-robot"></i>
-                <span>Signal Automatique</span>
+                <span>Signal Auto Réel 24/7</span>
             </div>
             <label class="toggle-switch">
                 <input type="checkbox" id="auto-toggle" checked>
@@ -532,7 +567,6 @@
             </div>
             
             <div class="history-list" id="history-list">
-                <!-- Les signaux seront injectés ici par JavaScript -->
                 <div class="history-item wait">
                     <div class="history-time">--:--</div>
                     <div class="history-action">Chargement...</div>
@@ -584,18 +618,22 @@
     <!-- Toast Notification -->
     <div class="toast" id="toast"></div>
     
-    <!-- Script principal avec modifications minimales pour Firebase -->
+    <!-- Script principal -->
     <script>
-        // Configuration Netlify et API Alpha Vantage (VOTRE CODE ORIGINAL)
+        // =================== CONFIGURATION 24/7 ===================
         const NETLIFY_MODE = true;
-        const AUTO_SIGNAL_INTERVAL = 60000; // 1 minute
-        const MARKET_ANALYSIS_INTERVAL = 30000; // 30 secondes
+        const REAL_AUTO_INTERVAL = 60000; // 1 minute (60 secondes)
+        const API_ALPHA_VANTAGE = "QPMD30L3MICTWRCP";
+        const ACTIVE_PAIR = "EUR/USD";
         
-        // Configuration API Réelle (VOTRE CODE ORIGINAL)
-        const API_KEY = "QPMD30L3MICTWRCP";
-        const REAL_SIGNAL_PAIR = "EUR/USD";
+        // Sessions de trading
+        const MARKET_SESSION = {
+            asie: { start: 0, end: 8, name: "🌏 Asie", class: "session-asia" },
+            europe: { start: 8, end: 16, name: "🇪🇺 Europe", class: "session-europe" },
+            usa: { start: 16, end: 24, name: "🇺🇸 USA", class: "session-usa" }
+        };
         
-        // État de l'application (VOTRE CODE ORIGINAL avec ajout Firebase)
+        // État de l'application
         let state = {
             signalHistory: JSON.parse(localStorage.getItem("signalHistory")) || [],
             lastSignal: JSON.parse(localStorage.getItem("lastSignal")) || null,
@@ -611,25 +649,27 @@
                 todaySignals: 0,
                 lastReset: new Date().toDateString()
             },
-            // AJOUT: Données Firebase
             firebaseData: {
                 currentSignal: null,
                 news: null,
                 history: []
-            }
+            },
+            currentPrice: null,
+            lastAutoSignalTime: 0
         };
         
-        // Classes pour les signaux (VOTRE CODE ORIGINAL)
+        // Classes pour les signaux
         const SIGNAL_CLASSES = {
             'CALL': 'signal-call',
             'PUT': 'signal-put',
             'ATTENDRE': 'signal-wait'
         };
         
-        // Éléments DOM (VOTRE CODE ORIGINAL)
+        // Éléments DOM
         const DOM = {
             signalAction: document.getElementById('signal-action'),
             signalPair: document.getElementById('signal-pair'),
+            signalPrice: document.getElementById('signal-price'),
             signalRisk: document.getElementById('signal-risk'),
             signalTime: document.getElementById('signal-time'),
             signalSource: document.getElementById('signal-source'),
@@ -639,31 +679,341 @@
             newsContent: document.getElementById('news-content'),
             newsTime: document.getElementById('news-time'),
             lastUpdate: document.getElementById('last-update'),
+            marketSession: document.getElementById('market-session'),
             autoToggle: document.getElementById('auto-toggle'),
             toast: document.getElementById('toast'),
-            
-            // Statistiques
             todaySignals: document.getElementById('today-signals'),
             accuracyRate: document.getElementById('accuracy-rate'),
             successCalls: document.getElementById('success-calls'),
             successPuts: document.getElementById('success-puts')
         };
         
-        // =================== FONCTIONS FIREBASE (AJOUTÉES) ===================
+        // =================== FONCTIONS UTILITAIRES ===================
+        
+        function getActiveSession() {
+            const now = new Date();
+            const hourUTC = now.getUTCHours();
+            
+            for (const [key, session] of Object.entries(MARKET_SESSION)) {
+                if (hourUTC >= session.start && hourUTC < session.end) {
+                    return session;
+                }
+            }
+            return { name: "🔒 Fermé", class: "session-closed" };
+        }
+        
+        function updateSessionDisplay() {
+            const session = getActiveSession();
+            DOM.marketSession.textContent = session.name;
+            DOM.marketSession.className = `session-badge ${session.class}`;
+            
+            // Mettre à jour le header avec l'heure
+            const now = new Date();
+            DOM.lastUpdate.textContent = now.toLocaleTimeString("fr-FR", { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+        
+        function showToast(message, type = 'info') {
+            const toast = DOM.toast;
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        function updateStats() {
+            DOM.todaySignals.textContent = state.appStats.todaySignals;
+            const totalSignals = state.appStats.totalSignals;
+            const successfulSignals = state.appStats.successfulCalls + state.appStats.successfulPuts;
+            const accuracy = totalSignals > 0 ? Math.round((successfulSignals / totalSignals) * 100) : 0;
+            DOM.accuracyRate.textContent = `${accuracy}%`;
+            DOM.successCalls.textContent = state.appStats.successfulCalls;
+            DOM.successPuts.textContent = state.appStats.successfulPuts;
+        }
+        
+        // =================== SIGNAL AUTO RÉEL 24/7 ===================
+        
+        async function fetchRealMarketData() {
+            try {
+                const url = `https://www.alphavantage.co/query?function=FX_INTRADAY&from_symbol=EUR&to_symbol=USD&interval=1min&apikey=${API_ALPHA_VANTAGE}&outputsize=compact`;
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data["Time Series FX (1min)"]) {
+                    throw new Error("Aucune donnée disponible");
+                }
+                
+                const candles = data["Time Series FX (1min)"];
+                const times = Object.keys(candles).slice(0, 20);
+                const prices = times.map(time => parseFloat(candles[time]["4. close"]));
+                const currentPrice = prices[prices.length - 1];
+                const previousPrice = prices[prices.length - 2] || currentPrice;
+                
+                // Calculer les moyennes mobiles
+                const ma5 = calculateMA(prices, 5);
+                const ma10 = calculateMA(prices, 10);
+                const ma20 = calculateMA(prices, 20);
+                
+                const priceChange = currentPrice - previousPrice;
+                const changePercent = (priceChange / previousPrice) * 100;
+                
+                return {
+                    success: true,
+                    price: currentPrice,
+                    previousPrice: previousPrice,
+                    change: priceChange,
+                    changePercent: changePercent,
+                    ma5: ma5,
+                    ma10: ma10,
+                    ma20: ma20,
+                    prices: prices,
+                    timestamp: new Date().toISOString()
+                };
+                
+            } catch (error) {
+                console.error("❌ Erreur récupération données:", error);
+                return { success: false, error: error.message };
+            }
+        }
+        
+        function calculateMA(prices, period) {
+            if (prices.length < period) return prices.length > 0 ? prices[prices.length - 1] : 0;
+            const slice = prices.slice(-period);
+            return slice.reduce((sum, price) => sum + price, 0) / period;
+        }
+        
+        async function generateRealAutoSignal() {
+            try {
+                console.log("🔄 Génération signal auto réel...");
+                
+                const marketData = await fetchRealMarketData();
+                
+                if (!marketData.success || !marketData.price) {
+                    throw new Error("Données marché indisponibles");
+                }
+                
+                // Stocker le prix actuel
+                state.currentPrice = marketData.price;
+                
+                // Déterminer le signal
+                let action, risk, reason, confidence;
+                const session = getActiveSession();
+                
+                // Logique de décision basée sur MA5 vs MA20
+                const maDiff = marketData.ma5 - marketData.ma20;
+                const maDiffPercent = (maDiff / marketData.ma20) * 100;
+                const trendStrength = Math.abs(marketData.changePercent);
+                
+                if (Math.abs(maDiffPercent) > 0.03) {
+                    // Tendance claire
+                    if (maDiffPercent > 0) {
+                        action = "CALL";
+                        reason = `MA5 > MA20 (${maDiffPercent.toFixed(2)}%)`;
+                    } else {
+                        action = "PUT";
+                        reason = `MA5 < MA20 (${maDiffPercent.toFixed(2)}%)`;
+                    }
+                    
+                    if (trendStrength > 0.05) {
+                        risk = "FAIBLE";
+                        confidence = 85;
+                    } else {
+                        risk = "MOYEN";
+                        confidence = 75;
+                    }
+                    
+                } else if (Math.abs(maDiffPercent) > 0.01) {
+                    // Tendance légère
+                    if (marketData.changePercent > 0) {
+                        action = "CALL";
+                    } else {
+                        action = "PUT";
+                    }
+                    risk = "ÉLEVÉ";
+                    confidence = 65;
+                    reason = `Tendance légère (${marketData.changePercent.toFixed(2)}%)`;
+                    
+                } else {
+                    // Marché plat
+                    action = "ATTENDRE";
+                    risk = "FAIBLE";
+                    confidence = 50;
+                    reason = `Marché plat (${marketData.changePercent.toFixed(2)}%)`;
+                }
+                
+                const signal = {
+                    time: new Date().toLocaleTimeString("fr-FR", {hour: '2-digit', minute:'2-digit'}),
+                    date: new Date().toLocaleDateString("fr-FR"),
+                    action: action,
+                    risk: risk,
+                    pair: ACTIVE_PAIR,
+                    source: 'auto_reel_24_7',
+                    reason: `${reason} | ${session.name}`,
+                    id: Date.now(),
+                    realPrice: marketData.price,
+                    previousPrice: marketData.previousPrice,
+                    change: marketData.changePercent.toFixed(3),
+                    confidence: confidence,
+                    session: session.name,
+                    ma5: marketData.ma5.toFixed(5),
+                    ma20: marketData.ma20.toFixed(5),
+                    timestamp: Date.now(),
+                    type: "signal_reel_24_7"
+                };
+                
+                console.log("✅ Signal auto réel généré:", signal.action, signal.realPrice);
+                return signal;
+                
+            } catch (error) {
+                console.error("❌ Erreur génération signal:", error);
+                return generateFallbackSignal();
+            }
+        }
+        
+        function generateFallbackSignal() {
+            const session = getActiveSession();
+            const now = new Date();
+            const hour = now.getHours();
+            
+            let action, risk, reason;
+            
+            if (hour >= 8 && hour < 16) {
+                action = Math.random() > 0.5 ? "CALL" : "PUT";
+                risk = "MOYEN";
+                reason = `Fallback (Session Europe)`;
+            } else if (hour >= 16 && hour < 24) {
+                action = Math.random() > 0.6 ? "PUT" : "CALL";
+                risk = "ÉLEVÉ";
+                reason = `Fallback (Session USA)`;
+            } else {
+                action = "ATTENDRE";
+                risk = "FAIBLE";
+                reason = `Fallback (Nuit)`;
+            }
+            
+            return {
+                time: new Date().toLocaleTimeString("fr-FR", {hour: '2-digit', minute:'2-digit'}),
+                date: new Date().toLocaleDateString("fr-FR"),
+                action: action,
+                risk: risk,
+                pair: ACTIVE_PAIR,
+                source: 'auto_fallback',
+                reason: `${reason} | ${session.name}`,
+                id: Date.now(),
+                timestamp: Date.now()
+            };
+        }
+        
+        async function processAutoSignal() {
+            if (!state.autoSignalEnabled) return;
+            
+            // Vérifier si on doit générer un nouveau signal (toutes les minutes)
+            const now = Date.now();
+            if (now - state.lastAutoSignalTime < REAL_AUTO_INTERVAL) {
+                return;
+            }
+            
+            try {
+                const signal = await generateRealAutoSignal();
+                state.lastAutoSignalTime = now;
+                
+                // Ajouter à l'historique local
+                addSignalToHistory(signal);
+                
+                // Mettre à jour l'affichage si pas de signal Firebase récent
+                if (!state.firebaseData.currentSignal || 
+                    (state.firebaseData.currentSignal && 
+                     now - (state.firebaseData.currentSignal.timestamp || 0) > 180000)) { // 3 minutes
+                    
+                    updateMainSignal(signal);
+                    
+                    // Animation et notification
+                    DOM.signalAction.classList.add('pulse-animation');
+                    setTimeout(() => {
+                        DOM.signalAction.classList.remove('pulse-animation');
+                    }, 500);
+                    
+                    const priceInfo = signal.realPrice ? 
+                        ` @ ${signal.realPrice.toFixed(5)}` : '';
+                    const notificationMsg = `🤖 Signal AUTO: ${signal.action}${priceInfo}`;
+                    showToast(notificationMsg, 'success');
+                }
+                
+                updateStats();
+                
+                // Log dans la console
+                console.log(`⏰ ${signal.time} - ${signal.action} (${signal.risk}) - ${signal.reason}`);
+                
+            } catch (error) {
+                console.error("❌ Erreur processAutoSignal:", error);
+            }
+        }
+        
+        function startAutoSignal() {
+            if (!state.autoSignalEnabled) return;
+            
+            console.log("🚀 Démarrage signal auto réel 24/7...");
+            
+            // Arrêter le timer existant
+            if (state.autoSignalTimer) {
+                clearInterval(state.autoSignalTimer);
+            }
+            
+            // Exécuter immédiatement
+            processAutoSignal();
+            
+            // Démarrer l'intervalle de 1 minute
+            state.autoSignalTimer = setInterval(() => {
+                if (state.autoSignalEnabled) {
+                    processAutoSignal();
+                }
+            }, REAL_AUTO_INTERVAL);
+            
+            showToast(`✅ Signal AUTO RÉEL activé (60s)`, 'success');
+        }
+        
+        function stopAutoSignal() {
+            if (state.autoSignalTimer) {
+                clearInterval(state.autoSignalTimer);
+                state.autoSignalTimer = null;
+            }
+            showToast('⏸️ Signal AUTO désactivé', 'warning');
+        }
+        
+        function toggleAutoSignal() {
+            state.autoSignalEnabled = DOM.autoToggle.checked;
+            
+            if (state.autoSignalEnabled) {
+                startAutoSignal();
+            } else {
+                stopAutoSignal();
+            }
+        }
+        
+        // =================== FONCTIONS FIREBASE ===================
         
         function initFirebase() {
             console.log("Initialisation Firebase...");
             
-            // Vérifier la connexion
             database.ref('.info/connected').on('value', (snap) => {
                 const isConnected = snap.val() === true;
                 document.getElementById('connection-status').innerHTML = 
                     isConnected ? 
-                    '<i class="fas fa-wifi"></i> Connecté à Firebase' : 
-                    '<i class="fas fa-wifi-slash"></i> Déconnecté';
+                    '<i class="fas fa-wifi"></i> Firebase' : 
+                    '<i class="fas fa-wifi-slash"></i> Local';
             });
             
-            // Écouter le signal actuel depuis Firebase
             database.ref('currentSignal').on('value', (snapshot) => {
                 const signal = snapshot.val();
                 if (signal) {
@@ -672,7 +1022,6 @@
                 }
             });
             
-            // Écouter les news depuis Firebase
             database.ref('news').on('value', (snapshot) => {
                 const newsText = snapshot.val();
                 if (newsText !== null && newsText !== undefined) {
@@ -681,20 +1030,18 @@
                 }
             });
             
-            // Écouter l'historique depuis Firebase
             database.ref('history').on('value', (snapshot) => {
                 const historyData = snapshot.val();
                 if (historyData) {
                     const historyArray = Object.values(historyData);
                     historyArray.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-                    state.firebaseData.history = historyArray;
+                    state.firebaseData.history = historyArray.slice(0, 10);
                     updateHistoryFromFirebase();
                 }
             });
         }
         
         function updateSignalFromFirebase(signal) {
-            // Convertir le format Firebase
             const formattedSignal = {
                 time: signal.heure || '--:--',
                 date: new Date(signal.timestamp || Date.now()).toLocaleDateString('fr-FR'),
@@ -705,27 +1052,18 @@
                 id: signal.timestamp || Date.now(),
                 timestamp: signal.timestamp,
                 realPrice: signal.realPrice,
-                commentaire: signal.commentaire
+                commentaire: signal.commentaire,
+                session: signal.session || getActiveSession().name
             };
             
-            // Mettre à jour l'affichage
-            DOM.signalAction.textContent = formattedSignal.action;
-            DOM.signalAction.className = `signal-action ${SIGNAL_CLASSES[formattedSignal.action]}`;
-            DOM.signalPair.textContent = formattedSignal.pair;
-            DOM.signalRisk.textContent = formattedSignal.risk;
-            DOM.signalTime.textContent = formattedSignal.time;
-            DOM.signalSource.textContent = formattedSignal.source === 'admin_manual' || formattedSignal.source === 'admin_reel' ? 'Admin' : 'Auto';
+            updateMainSignal(formattedSignal);
             
-            // Mettre à jour la couleur
-            DOM.mainSignal.classList.remove('signal-call', 'signal-put', 'signal-wait');
-            DOM.mainSignal.classList.add(SIGNAL_CLASSES[formattedSignal.action].replace('signal-', ''));
-            
-            // Vérifier si c'est un nouveau signal admin
+            // Notification pour nouveaux signaux admin
             if (signal.source === 'admin_manual' || signal.source === 'admin_reel') {
                 const isNewSignal = !state.signalHistory.some(s => s.id === formattedSignal.id);
                 if (isNewSignal) {
                     addSignalToHistory(formattedSignal);
-                    showToast(`📨 Nouveau signal admin: ${signal.type} ${signal.actif}`, 'warning');
+                    showToast(`📨 Signal ADMIN: ${signal.type}`, 'warning');
                 }
             }
         }
@@ -736,7 +1074,6 @@
                 DOM.newsTime.textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 state.newsContent = newsText;
                 
-                // Notification si c'est une nouvelle news
                 if (newsText.length > 0) {
                     showToast('📰 Nouvelles news reçues', 'success');
                 }
@@ -744,14 +1081,14 @@
         }
         
         function updateHistoryFromFirebase() {
-            const firebaseHistory = state.firebaseData.history.slice(0, 10);
+            const firebaseHistory = state.firebaseData.history;
             renderFirebaseHistory(firebaseHistory);
         }
         
         function renderFirebaseHistory(signals) {
             const historyList = DOM.historyList;
             
-            if (signals.length === 0) {
+            if (!signals || signals.length === 0) {
                 historyList.innerHTML = `
                     <div class="history-item wait">
                         <div class="history-time">--:--</div>
@@ -796,239 +1133,7 @@
             DOM.historyCount.textContent = `${signals.length} signaux live`;
         }
         
-        // =================== VOS FONCTIONS DE SIGNAL RÉEL (ORIGINALES) ===================
-        
-        async function fetchMarketData() {
-            try {
-                const url = `https://www.alphavantage.co/query?function=FX_INTRADAY&from_symbol=EUR&to_symbol=USD&interval=1min&apikey=${API_KEY}&outputsize=compact`;
-                
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if (!data["Time Series FX (1min)"]) {
-                    console.log("Données API non disponibles");
-                    return null;
-                }
-                
-                const candles = data["Time Series FX (1min)"];
-                const prices = Object.values(candles)
-                    .slice(0, 20)
-                    .map(candle => parseFloat(candle["4. close"]))
-                    .reverse();
-                
-                return prices;
-            } catch (error) {
-                console.error("Erreur API:", error);
-                return null;
-            }
-        }
-        
-        function calculateMA(prices, period) {
-            if (prices.length < period) return 0;
-            const slice = prices.slice(-period);
-            return slice.reduce((sum, price) => sum + price, 0) / period;
-        }
-        
-        async function analyzeRealMarket() {
-            const prices = await fetchMarketData();
-            
-            if (!prices || prices.length < 10) {
-                return { condition: 'no_data', price: null };
-            }
-            
-            const currentPrice = prices[prices.length - 1];
-            const ma5 = calculateMA(prices, 5);
-            const ma14 = calculateMA(prices, 14);
-            
-            const diffPercent = Math.abs(ma5 - ma14) / currentPrice * 100;
-            
-            let condition, confidence;
-            
-            if (ma5 > ma14 && diffPercent > 0.01) {
-                condition = 'trend_up';
-                confidence = Math.min(95, 70 + (diffPercent * 10));
-            } else if (ma5 < ma14 && diffPercent > 0.01) {
-                condition = 'trend_down';
-                confidence = Math.min(95, 70 + (diffPercent * 10));
-            } else {
-                condition = 'range';
-                confidence = 60;
-            }
-            
-            return {
-                condition: condition,
-                price: currentPrice,
-                ma5: ma5,
-                ma14: ma14,
-                confidence: Math.round(confidence),
-                diffPercent: diffPercent
-            };
-        }
-        
-        async function generateRealSignal() {
-            try {
-                const analysis = await analyzeRealMarket();
-                let action, risk, reason;
-                
-                if (analysis.condition === 'no_data') {
-                    action = 'ATTENDRE';
-                    risk = 'MOYEN';
-                    reason = 'Données marché indisponibles';
-                } else {
-                    switch(analysis.condition) {
-                        case 'trend_up':
-                            action = 'CALL';
-                            risk = analysis.confidence > 80 ? 'FAIBLE' : 'MOYEN';
-                            reason = `MA5 > MA14 (${analysis.confidence}% confiance)`;
-                            break;
-                        case 'trend_down':
-                            action = 'PUT';
-                            risk = analysis.confidence > 80 ? 'FAIBLE' : 'MOYEN';
-                            reason = `MA5 < MA14 (${analysis.confidence}% confiance)`;
-                            break;
-                        default:
-                            action = 'ATTENDRE';
-                            risk = 'ÉLEVÉ';
-                            reason = 'Marché en range';
-                    }
-                }
-                
-                const signal = {
-                    time: new Date().toLocaleTimeString(),
-                    date: new Date().toLocaleDateString('fr-FR'),
-                    action: action,
-                    risk: risk,
-                    pair: REAL_SIGNAL_PAIR,
-                    source: 'auto_reel',
-                    reason: reason,
-                    id: Date.now(),
-                    realPrice: analysis.price,
-                    confidence: analysis.confidence || 0
-                };
-                
-                return signal;
-            } catch (error) {
-                console.error("Erreur génération signal réel:", error);
-                return null;
-            }
-        }
-        
-        // =================== VOS FONCTIONS PRINCIPALES (MODIFIÉES POUR FIREBASE) ===================
-        
-        function init() {
-            setupEventListeners();
-            loadInitialData();
-            updateDisplay();
-            startAutoSignal();
-            startMarketAnalysis();
-            initFirebase(); // AJOUT: Initialiser Firebase
-            
-            setInterval(() => {
-                DOM.lastUpdate.textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            }, 2000);
-            
-            if ('serviceWorker' in navigator && NETLIFY_MODE) {
-                navigator.serviceWorker.register('/sw.js').catch(console.error);
-            }
-        }
-        
-        function setupEventListeners() {
-            DOM.autoToggle.addEventListener('change', toggleAutoSignal);
-            document.getElementById('refresh-btn').addEventListener('click', refreshData);
-            document.getElementById('refresh-stats').addEventListener('click', refreshData);
-            document.getElementById('stats-btn').addEventListener('click', showStatsModal);
-            document.getElementById('settings-btn').addEventListener('click', showSettingsModal);
-            
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                window.deferredPrompt = e;
-            });
-            
-            let touchStartY = 0;
-            window.addEventListener('touchstart', (e) => {
-                touchStartY = e.touches[0].clientY;
-            });
-            
-            window.addEventListener('touchmove', (e) => {
-                const touchY = e.touches[0].clientY;
-                const diff = touchStartY - touchY;
-                if (diff > 50 && window.scrollY === 0) {
-                    refreshData();
-                }
-            });
-        }
-        
-        function loadInitialData() {
-            const today = new Date().toDateString();
-            if (state.appStats.lastReset !== today) {
-                state.appStats.todaySignals = 0;
-                state.appStats.lastReset = today;
-                saveAppStats();
-            }
-            
-            // Priorité aux données Firebase
-            if (state.firebaseData.currentSignal) {
-                updateSignalFromFirebase(state.firebaseData.currentSignal);
-            } else if (state.lastSignal) {
-                updateMainSignal(state.lastSignal);
-            }
-            
-            if (state.firebaseData.news) {
-                updateNewsFromFirebase(state.firebaseData.news);
-            } else if (state.newsContent) {
-                DOM.newsContent.textContent = state.newsContent;
-                const lastNews = JSON.parse(localStorage.getItem("lastNews"));
-                if (lastNews) {
-                    DOM.newsTime.textContent = lastNews.time;
-                }
-            }
-            
-            updateStats();
-        }
-        
-        function updateDisplay() {
-            // Utiliser l'historique Firebase si disponible
-            if (state.firebaseData.history.length > 0) {
-                updateHistoryFromFirebase();
-            } else {
-                renderLocalHistory();
-            }
-            
-            DOM.lastUpdate.textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        }
-        
-        function renderLocalHistory() {
-            const historyList = DOM.historyList;
-            historyList.innerHTML = '';
-            
-            const recentSignals = state.signalHistory.slice(0, 10);
-            
-            if (recentSignals.length === 0) {
-                historyList.innerHTML = `
-                    <div class="history-item wait">
-                        <div class="history-time">--:--</div>
-                        <div class="history-action">Aucun signal</div>
-                        <div class="history-risk">--</div>
-                    </div>
-                `;
-                DOM.historyCount.textContent = `0 signaux`;
-                return;
-            }
-            
-            recentSignals.forEach(signal => {
-                const item = document.createElement('div');
-                item.className = `history-item ${signal.action.toLowerCase()} fade-in`;
-                item.innerHTML = `
-                    <div class="history-time">${signal.time}</div>
-                    <div class="history-action">${signal.action}</div>
-                    <div class="history-risk">${signal.risk}</div>
-                `;
-                item.addEventListener('click', () => showSignalDetails(signal));
-                historyList.appendChild(item);
-            });
-            
-            DOM.historyCount.textContent = `${state.signalHistory.length} signaux`;
-        }
+        // =================== FONCTIONS PRINCIPALES ===================
         
         function updateMainSignal(signal) {
             DOM.signalAction.textContent = signal.action;
@@ -1036,119 +1141,31 @@
             DOM.signalPair.textContent = signal.pair || 'EUR/USD';
             DOM.signalRisk.textContent = signal.risk || 'MOYEN';
             DOM.signalTime.textContent = signal.time || '--:--';
-            DOM.signalSource.textContent = signal.source === 'admin_manual' ? 'Admin' : 'Auto';
             
+            // Afficher la source
+            if (signal.source === 'auto_reel_24_7') {
+                DOM.signalSource.textContent = 'Auto RÉEL';
+                DOM.signalSource.style.color = '#10b981';
+                DOM.signalSource.style.fontWeight = 'bold';
+            } else if (signal.source === 'admin_manual' || signal.source === 'admin_reel') {
+                DOM.signalSource.textContent = 'Admin';
+                DOM.signalSource.style.color = '#ef4444';
+            } else {
+                DOM.signalSource.textContent = 'Auto';
+                DOM.signalSource.style.color = '#f59e0b';
+            }
+            
+            // Afficher le prix réel
+            if (signal.realPrice) {
+                DOM.signalPrice.textContent = signal.realPrice.toFixed(5);
+                DOM.signalPrice.style.display = 'block';
+            } else {
+                DOM.signalPrice.style.display = 'none';
+            }
+            
+            // Mettre à jour la couleur de fond
             DOM.mainSignal.classList.remove('signal-call', 'signal-put', 'signal-wait');
             DOM.mainSignal.classList.add(SIGNAL_CLASSES[signal.action].replace('signal-', ''));
-        }
-        
-        function updateStats() {
-            DOM.todaySignals.textContent = state.appStats.todaySignals;
-            const totalSignals = state.appStats.totalSignals;
-            const successfulSignals = state.appStats.successfulCalls + state.appStats.successfulPuts;
-            const accuracy = totalSignals > 0 ? Math.round((successfulSignals / totalSignals) * 100) : 0;
-            DOM.accuracyRate.textContent = `${accuracy}%`;
-            DOM.successCalls.textContent = state.appStats.successfulCalls;
-            DOM.successPuts.textContent = state.appStats.successfulPuts;
-        }
-        
-        function toggleAutoSignal() {
-            state.autoSignalEnabled = DOM.autoToggle.checked;
-            
-            if (state.autoSignalEnabled) {
-                startAutoSignal();
-                showToast('Signal RÉEL ACTIVÉ', 'success');
-            } else {
-                stopAutoSignal();
-                showToast('Signal RÉEL DÉSACTIVÉ', 'warning');
-            }
-        }
-        
-        function startAutoSignal() {
-            if (!state.autoSignalEnabled) return;
-            
-            if (state.autoSignalTimer) {
-                clearInterval(state.autoSignalTimer);
-            }
-            
-            state.autoSignalTimer = setInterval(generateAutoSignal, AUTO_SIGNAL_INTERVAL);
-            setTimeout(generateAutoSignal, 1000);
-        }
-        
-        function stopAutoSignal() {
-            if (state.autoSignalTimer) {
-                clearInterval(state.autoSignalTimer);
-                state.autoSignalTimer = null;
-            }
-        }
-        
-        async function generateAutoSignal() {
-            if (!state.autoSignalEnabled) return;
-            
-            try {
-                const signal = await generateRealSignal();
-                
-                if (!signal) {
-                    generateFallbackSignal();
-                    return;
-                }
-                
-                // Utiliser principalement les signaux Firebase
-                if (state.firebaseData.currentSignal) {
-                    console.log("Utilisation du signal Firebase comme source principale");
-                    return;
-                }
-                
-                addSignalToHistory(signal);
-                updateMainSignal(signal);
-                
-                if (state.firebaseData.history.length === 0) {
-                    renderLocalHistory();
-                }
-                
-                updateStats();
-                
-                const priceInfo = signal.realPrice ? ` (${signal.realPrice.toFixed(5)})` : '';
-                showToast(`Signal RÉEL: ${signal.action}${priceInfo}`, 'success');
-                
-                DOM.signalAction.classList.add('pulse-animation');
-                setTimeout(() => {
-                    DOM.signalAction.classList.remove('pulse-animation');
-                }, 500);
-                
-            } catch (error) {
-                console.error("Erreur signal auto:", error);
-                generateFallbackSignal();
-            }
-        }
-        
-        function generateFallbackSignal() {
-            const actions = ['CALL', 'PUT', 'ATTENDRE'];
-            const risks = ['FAIBLE', 'MOYEN', 'ÉLEVÉ'];
-            const action = actions[Math.floor(Math.random() * 3)];
-            const risk = risks[Math.floor(Math.random() * 3)];
-            
-            const signal = {
-                time: new Date().toLocaleTimeString(),
-                date: new Date().toLocaleDateString('fr-FR'),
-                action: action,
-                risk: risk,
-                pair: REAL_SIGNAL_PAIR,
-                source: 'auto_fallback',
-                reason: 'API temporairement indisponible',
-                id: Date.now()
-            };
-            
-            addSignalToHistory(signal);
-            updateMainSignal(signal);
-            
-            if (state.firebaseData.history.length === 0) {
-                renderLocalHistory();
-            }
-            
-            updateStats();
-            
-            showToast(`Signal (fallback): ${signal.action}`, 'warning');
         }
         
         function addSignalToHistory(signal) {
@@ -1162,6 +1179,7 @@
             state.appStats.totalSignals++;
             state.appStats.todaySignals++;
             
+            // Simulation de succès pour les stats
             if (Math.random() > 0.3) {
                 if (signal.action === 'CALL') state.appStats.successfulCalls++;
                 if (signal.action === 'PUT') state.appStats.successfulPuts++;
@@ -1171,21 +1189,18 @@
             saveAppStats();
         }
         
-        function startMarketAnalysis() {
-            state.marketAnalysisTimer = setInterval(async () => {
-                try {
-                    const analysis = await analyzeRealMarket();
-                    if (analysis.price) {
-                        console.log('Analyse marché:', analysis.condition, 'Prix:', analysis.price.toFixed(5));
-                    }
-                } catch (error) {
-                    console.log('Analyse marché en cours...');
-                }
-            }, MARKET_ANALYSIS_INTERVAL);
+        function saveAppState() {
+            localStorage.setItem("signalHistory", JSON.stringify(state.signalHistory));
+            localStorage.setItem("lastSignal", JSON.stringify(state.lastSignal));
+            localStorage.setItem("lastUpdate", Date.now().toString());
+        }
+        
+        function saveAppStats() {
+            localStorage.setItem("appStats", JSON.stringify(state.appStats));
         }
         
         function refreshData() {
-            // Rafraîchir manuellement les données Firebase
+            // Rafraîchir Firebase
             database.ref('currentSignal').once('value').then((snapshot) => {
                 const signal = snapshot.val();
                 if (signal) {
@@ -1200,59 +1215,16 @@
                 }
             });
             
-            database.ref('history').once('value').then((snapshot) => {
-                const historyData = snapshot.val();
-                if (historyData) {
-                    const historyArray = Object.values(historyData);
-                    historyArray.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-                    state.firebaseData.history = historyArray;
-                    updateHistoryFromFirebase();
-                }
-            });
+            // Forcer un nouveau signal auto
+            if (state.autoSignalEnabled) {
+                processAutoSignal();
+            }
             
-            showToast('✅ Données Firebase actualisées', 'success');
-            
+            showToast('✅ Données actualisées', 'success');
             DOM.mainSignal.classList.add('pulse-animation');
             setTimeout(() => {
                 DOM.mainSignal.classList.remove('pulse-animation');
             }, 500);
-        }
-        
-        function showSignalDetails(signal) {
-            const details = `
-                Signal: ${signal.action}
-                Paire: ${signal.pair}
-                Risque: ${signal.risk}
-                Heure: ${signal.time}
-                Source: ${signal.source === 'admin_manual' ? 'Admin' : 'Auto'}
-                ${signal.reason ? `Raison: ${signal.reason}` : ''}
-                ${signal.realPrice ? `Prix: ${signal.realPrice.toFixed(5)}` : ''}
-            `;
-            
-            if (window.confirm(details + "\n\nVoulez-vous copier ces détails?")) {
-                navigator.clipboard.writeText(details);
-                showToast('Détails copiés', 'success');
-            }
-        }
-        
-        function showToast(message, type = 'info') {
-            const toast = DOM.toast;
-            toast.textContent = message;
-            toast.className = `toast ${type} show`;
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
-        
-        function saveAppState() {
-            localStorage.setItem("signalHistory", JSON.stringify(state.signalHistory));
-            localStorage.setItem("lastSignal", JSON.stringify(state.lastSignal));
-            localStorage.setItem("lastUpdate", Date.now().toString());
-        }
-        
-        function saveAppStats() {
-            localStorage.setItem("appStats", JSON.stringify(state.appStats));
         }
         
         function showStatsModal() {
@@ -1263,6 +1235,8 @@
                 PUTs réussis: ${state.appStats.successfulPuts}
                 Précision: ${state.appStats.totalSignals > 0 ? 
                     Math.round(((state.appStats.successfulCalls + state.appStats.successfulPuts) / state.appStats.totalSignals) * 100) : 0}%
+                Session: ${getActiveSession().name}
+                Signal auto: ${state.autoSignalEnabled ? 'ACTIF' : 'INACTIF'}
             `;
             
             alert(`📊 Statistiques Typh:\n\n${stats}`);
@@ -1270,11 +1244,12 @@
         
         function showSettingsModal() {
             const settings = `
-                1. Intervalle auto: ${AUTO_SIGNAL_INTERVAL/1000}s
+                1. Intervalle auto: ${REAL_AUTO_INTERVAL/1000}s
                 2. Mode Netlify: ${NETLIFY_MODE ? 'Activé' : 'Désactivé'}
                 3. Signal auto: ${state.autoSignalEnabled ? 'Activé' : 'Désactivé'}
                 4. Historique: ${state.signalHistory.length} signaux
                 5. Firebase: Connecté
+                6. Session: ${getActiveSession().name}
             `;
             
             const action = prompt(`⚙️ Réglages:\n\n${settings}\n\nEntrez "reset" pour réinitialiser:`);
@@ -1285,6 +1260,51 @@
                     location.reload();
                 }
             }
+        }
+        
+        function setupEventListeners() {
+            DOM.autoToggle.addEventListener('change', toggleAutoSignal);
+            document.getElementById('refresh-btn').addEventListener('click', refreshData);
+            document.getElementById('refresh-stats').addEventListener('click', refreshData);
+            document.getElementById('stats-btn').addEventListener('click', showStatsModal);
+            document.getElementById('settings-btn').addEventListener('click', showSettingsModal);
+            
+            if (window.deferredPrompt) {
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    window.deferredPrompt = e;
+                });
+            }
+        }
+        
+        function init() {
+            console.log("🚀 Initialisation Typh Signals 24/7...");
+            
+            setupEventListeners();
+            initFirebase();
+            updateSessionDisplay();
+            updateStats();
+            
+            // Démarrer les mises à jour
+            setInterval(updateSessionDisplay, 1000);
+            startAutoSignal();
+            
+            // Charger les données initiales
+            if (state.lastSignal) {
+                updateMainSignal(state.lastSignal);
+            }
+            
+            if (state.newsContent) {
+                DOM.newsContent.textContent = state.newsContent;
+                DOM.newsTime.textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            }
+            
+            // PWA
+            if ('serviceWorker' in navigator && NETLIFY_MODE) {
+                navigator.serviceWorker.register('/sw.js').catch(console.error);
+            }
+            
+            showToast('✅ Typh Signals 24/7 activé', 'success');
         }
         
         document.addEventListener('DOMContentLoaded', init);
